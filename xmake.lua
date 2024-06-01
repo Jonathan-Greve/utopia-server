@@ -1,75 +1,76 @@
+set_project("Utopia Server")
+set_version("0.0.1")
+
+set_languages("c++latest")
+
 add_rules("mode.debug", "mode.release")
+
+
+-- Setup for debug symbols and optimization
+if is_mode("debug") then
+    set_symbols("debug")
+    set_optimize("none")
+else
+    set_symbols("hidden")
+    set_optimize("fastest")
+    set_strip("all")
+end
+
+-- Function to add platform-specific flags
+function add_platform_specific_flags()
+    if is_plat("windows") then
+        add_cxxflags("/EHsc")
+        add_cxxflags("/Zc:__cplusplus")
+        add_cxflags("/bigobj")
+        
+        -- Disable warnings
+        add_cxflags("/wd4068") -- unknown pragma
+        add_cxflags("/wd5045") -- Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+        add_cxflags("/wd4514") -- unreferenced inline function has been removed
+        add_cxflags("/wd4866") -- compiler may not enforce left-to-right evaluation order
+        add_cxflags("/wd4710") -- function not inlined
+        add_cxflags("/wd4711") -- selected for automatic inline expansion
+        add_cxflags("/wd4820") -- padding added after data member
+        add_cxflags("/wd4365") -- 'initializing': conversion from 'type1' to 'type2', signed/unsigned mismatch
+        add_cxflags("/wd5246") -- The initialization of a subobject should be wrapped in braces
+        add_cxflags("/wd5267") -- definition of implicit copy constructor for 'utopia::core::PacketReader' is deprecated because it has a user-provided destructor
+    else
+        -- Add flags for e.g. linux here
+
+        -- Disable warningsenginebgf
+        add_cxflags("-Wno-c++98-compat")
+        add_cxflags("-Wno-c++98-compat-pedantic")
+        add_cxflags("-Wno-padded")
+        add_cxflags("-Wno-unknown-pragmas")
+        add_cxflags("-Wno-used-but-marked-unused")
+        add_cxflags("-Wno-switch-default")
+        add_cxflags("-Wno-missing-field-initializers")
+    end
+end
+
+function add_common_requires()
+    add_requires("spdlog", "glm", "argparse", "entt", "asio", "mbedtls ~2.28.3", "magic_enum",
+                 "boost_sml", "concurrentqueue", "utfcpp", "ftxui", "boost")
+end
+
+function add_common_packages()
+    add_packages("spdlog", "glm", "argparse", "entt", "asio", "mbedtls", "magic_enum", "boost_sml", "concurrentqueue", "utfcpp", "ftxui", "boost")
+end
+
+add_common_requires()
 
 target("utopia-server")
     set_kind("binary")
-    add_files("src/*.cpp")
+    set_pcxxheader("include/utopia/utopia_pch.hpp")
+    set_warnings("all")
+    add_common_packages()
+    add_files("src/**.cpp")
+    add_includedirs("include/")
+    add_platform_specific_flags()
 
---
--- If you want to known more usage about xmake, please see https://xmake.io
---
--- ## FAQ
---
--- You can enter the project directory firstly before building project.
---
---   $ cd projectdir
---
--- 1. How to build project?
---
---   $ xmake
---
--- 2. How to configure project?
---
---   $ xmake f -p [macosx|linux|iphoneos ..] -a [x86_64|i386|arm64 ..] -m [debug|release]
---
--- 3. Where is the build output directory?
---
---   The default output directory is `./build` and you can configure the output directory.
---
---   $ xmake f -o outputdir
---   $ xmake
---
--- 4. How to run and debug target after building project?
---
---   $ xmake run [targetname]
---   $ xmake run -d [targetname]
---
--- 5. How to install target to the system directory or other output directory?
---
---   $ xmake install
---   $ xmake install -o installdir
---
--- 6. Add some frequently-used compilation flags in xmake.lua
---
--- @code
---    -- add debug and release modes
---    add_rules("mode.debug", "mode.release")
---
---    -- add macro definition
---    add_defines("NDEBUG", "_GNU_SOURCE=1")
---
---    -- set warning all as error
---    set_warnings("all", "error")
---
---    -- set language: c99, c++11
---    set_languages("c99", "c++11")
---
---    -- set optimization: none, faster, fastest, smallest
---    set_optimize("fastest")
---
---    -- add include search directories
---    add_includedirs("/usr/include", "/usr/local/include")
---
---    -- add link libraries and search directories
---    add_links("tbox")
---    add_linkdirs("/usr/local/lib", "/usr/lib")
---
---    -- add system link libraries
---    add_syslinks("z", "pthread")
---
---    -- add compilation and link flags
---    add_cxflags("-stdnolib", "-fno-strict-aliasing")
---    add_ldflags("-L/usr/local/lib", "-lpthread", {force = true})
---
--- @endcode
---
-
+    after_build(function (target)
+            local destDir = path.join("$(buildir)", "$(plat)", "$(arch)", "$(mode)")
+            print("Copying data to " .. destDir)
+            os.cp("$(projectdir)/data", destDir)
+        end)
+target_end()
