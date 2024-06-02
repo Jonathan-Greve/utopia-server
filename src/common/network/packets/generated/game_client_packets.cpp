@@ -12,9 +12,8 @@
 #include <string>
 #include <vector>
 
-
 namespace utopia {
-namespace core {
+namespace common {
 GameClientTradeAcknowledge::GameClientTradeAcknowledge(
     const std::vector<std::uint8_t> &data)
     : PacketReader(0) {
@@ -8487,5 +8486,5 @@ std::vector<std::uint8_t> GameClientPacket191::pack() const {
   pack_field(field_1, data);
   return data;
 }
-} // namespace core
+} // namespace common
 } // namespace utopia

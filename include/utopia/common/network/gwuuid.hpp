@@ -3,7 +3,7 @@
 #include <array>
 #include <cstdint>
 
-namespace utopia::core {
+namespace utopia::common {
 
 struct GWUUID {
   GWUUID() noexcept;
@@ -16,5 +16,4 @@ struct GWUUID {
   static void uuid_enc_le(void *buf, const GWUUID &u);
 };
 
-} // namespace utopia::core
-
+} // namespace utopia::common

@@ -15,7 +15,7 @@
 #include <string>
 #include <vector>
 
-namespace utopia::core {
+namespace utopia::common {
 
 /**
  * @class ConnectionBase
@@ -49,6 +49,7 @@ public:
 protected:
   explicit ConnectionBase(asio::io_context &io_context);
   bool connect(const std::string &host, const std::string &port);
+  bool accept_connection(unsigned short port);
   std::optional<std::string> get_local_endpoint_address() const;
   std::optional<std::string> get_remote_endpoint_address() const;
   bool send(const std::vector<std::uint8_t> &data);
@@ -73,4 +74,4 @@ private:
   static void arc4_hash(const std::uint8_t *key, std::uint8_t *digest);
 };
 
-} // namespace utopia::core
+} // namespace utopia::common

@@ -11,7 +11,7 @@
 
 #pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
 
-namespace utopia::core {
+namespace utopia::common {
 class PacketReader {
 public:
   virtual ~PacketReader();
@@ -305,4 +305,4 @@ protected:
     memcpy(insert_ptr + 2, extra_struct, extra_struct_data_size);
   }
 };
-} // namespace utopia::core
+} // namespace utopia::common

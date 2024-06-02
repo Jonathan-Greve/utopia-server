@@ -1,5 +1,7 @@
 #pragma once
 
+#include "utopia/portal_server/app/app_context.hpp"
+
 #include <cstdint>
 
 namespace argparse {
@@ -25,7 +27,7 @@ public:
   void run() noexcept;
 
 private:
-  const std::uint32_t port_;
+  std::uint32_t port_;
 };
 
 } // namespace utopia::portal::app

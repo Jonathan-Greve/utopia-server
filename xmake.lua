@@ -33,7 +33,7 @@ function add_platform_specific_flags()
         add_cxflags("/wd4820") -- padding added after data member
         add_cxflags("/wd4365") -- 'initializing': conversion from 'type1' to 'type2', signed/unsigned mismatch
         add_cxflags("/wd5246") -- The initialization of a subobject should be wrapped in braces
-        add_cxflags("/wd5267") -- definition of implicit copy constructor for 'utopia::core::PacketReader' is deprecated because it has a user-provided destructor
+        add_cxflags("/wd5267") -- definition of implicit copy constructor for 'utopia::common::PacketReader' is deprecated because it has a user-provided destructor
     else
         -- Add flags for e.g. linux here
 

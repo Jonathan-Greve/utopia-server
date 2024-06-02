@@ -4,9 +4,13 @@
 
 #include <boost/circular_buffer.hpp>
 
+#include <cstdint>
+
 namespace utopia::portal::app {
 
 struct AppContext {
+  std::uint32_t port = 0;
+
   boost::circular_buffer<common::StateTransitionLogEntry> state_log{100};
 };
 

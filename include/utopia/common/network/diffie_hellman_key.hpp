@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-namespace utopia::core {
+namespace utopia::common {
 /**
  * @class DiffieHellmanKey
  * @brief Manages Diffie-Hellman keys.
@@ -167,4 +167,4 @@ private:
     return valid_key_;
   }
 };
-} // namespace utopia::core
+} // namespace utopia::common

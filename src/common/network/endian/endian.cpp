@@ -2,7 +2,7 @@
 
 #include "utopia/common/network/endian/endian.hpp"
 
-namespace utopia::core {
+namespace utopia::common {
 
 #include <cstdint>
 #include <span>
@@ -97,4 +97,4 @@ void le64_enc(void *pp, const std::uint64_t u) noexcept {
   le32_enc(p.subspan(4, 4).data(), static_cast<std::uint32_t>(u >> 32));
 }
 
-} // namespace utopia::core
+} // namespace utopia::common

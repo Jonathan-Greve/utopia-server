@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-namespace utopia::core {
+namespace utopia::common {
 
 std::uint32_t be24_dec(const void *pp) noexcept;
 std::uint16_t be16_dec(const void *pp) noexcept;
@@ -21,4 +21,4 @@ void le16_enc(void *pp, const std::uint16_t u) noexcept;
 void le32_enc(void *pp, const std::uint32_t u) noexcept;
 void le64_enc(void *pp, const std::uint64_t u) noexcept;
 
-} // namespace utopia::core
+} // namespace utopia::common

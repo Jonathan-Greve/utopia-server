@@ -13,7 +13,7 @@
 #include <vector>
 
 namespace utopia {
-namespace core {
+namespace common {
 AuthClientHeartbeat::AuthClientHeartbeat(const std::vector<std::uint8_t> &data)
     : PacketReader(0) {
   if (parse(data)) {
@@ -2927,5 +2927,5 @@ std::vector<std::uint8_t> AuthClientPortalAccountLogin::pack() const {
   pack_string(character_name, data);
   return data;
 }
-} // namespace core
+} // namespace common
 } // namespace utopia

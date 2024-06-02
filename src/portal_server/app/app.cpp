@@ -2,6 +2,7 @@
 
 #include "utopia/portal_server/app/app.hpp"
 
+#include "utopia/common/network/client_connection/connection_manager.hpp"
 #include "utopia/portal_server/app/app_context.hpp"
 #include "utopia/portal_server/app/app_logger.hpp"
 #include "utopia/portal_server/app/app_state_machine.hpp"
@@ -44,12 +45,14 @@ void App::run() noexcept {
 
   asio::io_context io;
 
-  AppContext app_sm_context;
+  AppContext app_sm_context{.port = port_};
 
   AppLogger app_logger{app_sm_context};
 
+  common::ConnectionManager connection_manager{io};
+
   sm<AppStateMachine, logger<AppLogger>> app_sm{
-      io, app_logger, event_queue.get(), app_sm_context};
+      io, app_logger, event_queue.get(), app_sm_context, connection_manager};
 
   spdlog::trace("Running the login portal app.");
   // Create a work guard to prevent the io_context from running out of work

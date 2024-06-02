@@ -8,7 +8,7 @@
 #include <optional>
 #include <vector>
 
-namespace utopia::core {
+namespace utopia::common {
 inline std::optional<std::vector<std::uint8_t>>
 read_file(const std::filesystem::path &filepath) {
   std::ifstream file(filepath, std::ios::binary);
@@ -34,4 +34,4 @@ read_file(const std::filesystem::path &filepath) {
 
   return data;
 }
-} // namespace utopia::core
+} // namespace utopia::common

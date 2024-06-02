@@ -10,9 +10,8 @@
 #include <string>
 #include <vector>
 
-
 namespace utopia {
-namespace core {
+namespace common {
 
 class AuthClientHeartbeat : public PacketReader {
 public:
@@ -1344,7 +1343,7 @@ private:
   std::vector<std::uint8_t> pack() const;
 };
 
-} // namespace core
+} // namespace common
 } // namespace utopia
 
 #endif // AUTH_CLIENT_PACKETS_HPP

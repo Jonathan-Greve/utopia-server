@@ -20,7 +20,7 @@
 // Used in arc4_hash
 #define ROL32(x, n) ((x << n) | ((x & 0xFFFFFFFF) >> (32 - n)))
 
-namespace utopia::core {
+namespace utopia::common {
 /**
  * @struct msg_client_seed
  * @brief Represents the client seed message structure.
@@ -198,6 +198,46 @@ bool ConnectionBase::disconnect() {
     if (!socket_.close(ec)) {
       return false;
     }
+  }
+
+  return true;
+}
+
+/**
+ * @brief Accepts a connection on the given port.
+ * @param port Port number to accept connections on.
+ * @return true on successful connection, false otherwise.
+ *
+ * Example usage:
+ * @code
+ * accept_connection(6112);
+ * @endcode
+ */
+bool ConnectionBase::accept_connection(unsigned short port) {
+  asio::ip::tcp::acceptor acceptor(socket_.get_executor());
+  asio::error_code ec;
+  acceptor.open(asio::ip::tcp::v4(), ec);
+  if (ec) {
+    spdlog::error("Failed to open acceptor: {}", ec.message());
+    return false;
+  }
+
+  acceptor.bind(asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port), ec);
+  if (ec) {
+    spdlog::error("Failed to bind acceptor: {}", ec.message());
+    return false;
+  }
+
+  acceptor.listen(asio::socket_base::max_listen_connections, ec);
+  if (ec) {
+    spdlog::error("Failed to listen on acceptor: {}", ec.message());
+    return false;
+  }
+
+  acceptor.accept(socket_, ec);
+  if (ec) {
+    spdlog::error("Failed to accept connection: {}", ec.message());
+    return false;
   }
 
   return true;
@@ -497,4 +537,4 @@ ConnectionBase::~ConnectionBase() {
   socket_.close();
 }
 
-} // namespace utopia::core
+} // namespace utopia::common

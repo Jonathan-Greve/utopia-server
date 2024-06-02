@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <span>
 
-namespace utopia::core {
+namespace utopia::common {
 
 GWUUID::GWUUID() noexcept
     : time_low(0), time_mid(0), time_hi_and_version(0),
@@ -24,4 +24,4 @@ void GWUUID::uuid_enc_le(void *buf, const GWUUID &u) {
   std::copy(u.node.begin(), u.node.end(), b.subspan(10, 6).begin());
 }
 
-} // namespace utopia::core
+} // namespace utopia::common
