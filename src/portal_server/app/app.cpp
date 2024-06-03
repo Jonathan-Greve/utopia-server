@@ -2,12 +2,12 @@
 
 #include "utopia/portal_server/app/app.hpp"
 
-#include "utopia/common/network/client_connection/connection_manager.hpp"
 #include "utopia/common/network/diffie_hellman_key.hpp"
 #include "utopia/portal_server/app/app_context.hpp"
 #include "utopia/portal_server/app/app_logger.hpp"
 #include "utopia/portal_server/app/app_state_machine.hpp"
 #include "utopia/portal_server/app/events/app_event.hpp"
+#include "utopia/portal_server/client_connection/connection_manager.hpp"
 
 #include <argparse/argparse.hpp>
 #include <asio.hpp>
@@ -60,7 +60,7 @@ void App::run() noexcept {
 
   AppLogger app_logger{app_sm_context};
 
-  common::ConnectionManager connection_manager{io};
+  client_connection::ConnectionManager connection_manager{io};
 
   sm<AppStateMachine, logger<AppLogger>> app_sm{
       io, app_logger, event_queue.get(), app_sm_context, connection_manager};

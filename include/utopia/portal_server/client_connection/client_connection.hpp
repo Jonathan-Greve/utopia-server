@@ -6,11 +6,13 @@
 
 #include <string>
 
-namespace utopia::common {
+namespace utopia::portal::client_connection {
 
-class ClientConnection : public ConnectionBase {
+class ClientConnection : public common::ConnectionBase {
 public:
   ClientConnection(asio::io_context &io_context, unsigned short port);
+
+  void run();
 };
 
-} // namespace utopia::common
+} // namespace utopia::portal::client_connection
