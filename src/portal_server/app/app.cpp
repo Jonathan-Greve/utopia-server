@@ -3,6 +3,7 @@
 #include "utopia/portal_server/app/app.hpp"
 
 #include "utopia/common/network/client_connection/connection_manager.hpp"
+#include "utopia/common/network/diffie_hellman_key.hpp"
 #include "utopia/portal_server/app/app_context.hpp"
 #include "utopia/portal_server/app/app_logger.hpp"
 #include "utopia/portal_server/app/app_state_machine.hpp"
@@ -31,9 +32,19 @@ volatile bool sigint_received = false;
 // Signal handler function
 void sig_int_handler(int signal) { sigint_received = true; }
 
-App::App(const argparse::ArgumentParser &arg_parser) noexcept
-    : port_(arg_parser.get<std::uint32_t>("--port")) {
+App::App(const argparse::ArgumentParser &arg_parser,
+         const common::DiffieHellmanKey &diffie_hellman_key) noexcept
+    : port_(arg_parser.get<std::uint32_t>("--port")),
+      game_version_(arg_parser.get<std::uint32_t>("--game-version")),
+      key_path_(arg_parser.get<std::string>("--key-path")),
+      auth_host_(arg_parser.get<std::string>("--auth-host")),
+      auth_port_(arg_parser.get<std::uint32_t>("--auth_port")),
+      diffie_hellman_key_(diffie_hellman_key) {
   spdlog::info("Port: {}.", port_);
+  spdlog::info("Game version: {}.", game_version_);
+  spdlog::info("Key path: {}.", key_path_);
+  spdlog::info("Auth host: {}.", auth_host_);
+  spdlog::info("Auth port: {}.", auth_port_);
 
   std::signal(SIGINT, sig_int_handler);
 }
