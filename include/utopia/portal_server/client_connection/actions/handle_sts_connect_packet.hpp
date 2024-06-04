@@ -1,10 +1,8 @@
 #pragma once
 
-#include "utopia/portal_server/app/app_context.hpp"
-#include "utopia/portal_server/app/events/app_event.hpp"
-#include "utopia/portal_server/app/events/app_events.hpp"
 #include "utopia/portal_server/client_connection/client_connection.hpp"
-#include "utopia/portal_server/client_connection/connection_manager.hpp"
+#include "utopia/portal_server/client_connection/events/client_connection_event.hpp"
+#include "utopia/portal_server/client_connection/events/client_connection_events.hpp"
 
 #include <asio.hpp>
 #include <concurrentqueue.h>
@@ -14,14 +12,14 @@ namespace utopia::portal::client_connection {
 
 inline const auto handle_sts_connect_packet =
     [](asio::io_context &io,
-       moodycamel::ConcurrentQueue<app::AppEvent> *event_queue,
-       app::AppContext &app_context, ConnectionManager &connection_manager) {
-      auto connection = std::make_unique<client_connection::ClientConnection>(
-          io, app_context.port);
+       moodycamel::ConcurrentQueue<ClientConnectionEvent> *event_queue,
+       ClientConnectionEvents::ClientDataReceived event) {
+      if (event.data.size() > 0) {
+        spdlog::info("Received {} bytes.", event.data.size());
 
-      if (connection->is_connected()) {
-        spdlog::info("Accepted a new connection.");
-        connection_manager.add_connection(std::move(connection));
+        std::string recv_data(event.data.begin(),
+                              event.data.begin() + event.data.size());
+        spdlog::info("Received data (ASCII): {}", recv_data);
       }
     };
 

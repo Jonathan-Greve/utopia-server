@@ -1,6 +1,6 @@
 #pragma once
+#include "utopia/portal_server/client_connection/actions/handle_sts_connect_packet.hpp"
 #include "utopia/portal_server/client_connection/client_connection_states.hpp"
-#include "utopia/portal_server/client_connection/events/client_connection_events.hpp"
 
 #include <boost/sml.hpp>
 #include <spdlog/spdlog.h>
@@ -17,7 +17,7 @@ struct ClientConnectionStateMachine {
     return make_transition_table(
       * state<ClientConnectionStates::Connected> = state<ClientConnectionStates::WaitingForClientConnectMsg>
 
-      , state<ClientConnectionStates::WaitingForClientConnectMsg> + event<ClientConnectionEvents::ClientDataReceived> / [](){spdlog::info("Received ClientDataReceived event.");}
+      , state<ClientConnectionStates::WaitingForClientConnectMsg> + event<ClientConnectionEvents::ClientDataReceived> / handle_sts_connect_packet 
       
       , state<ClientConnectionStates::Stopping> = X
     );

@@ -42,16 +42,7 @@ void ClientConnection::run() {
     client_data_received_event.data.resize(4096);
     auto num_bytes_read = read_some(client_data_received_event.data);
 
-    if (num_bytes_read) {
-      spdlog::info("Received {} bytes.", num_bytes_read.value());
-
-      std::string recv_data(client_data_received_event.data.begin(),
-                            client_data_received_event.data.begin() +
-                                num_bytes_read.value());
-      spdlog::info("Received data (ASCII): {}", recv_data);
-
-      client_connection_sm.process_event(client_data_received_event);
-    }
+    client_connection_sm.process_event(client_data_received_event);
   }
 }
 
