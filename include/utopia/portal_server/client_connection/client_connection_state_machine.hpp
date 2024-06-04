@@ -1,4 +1,5 @@
 #pragma once
+#include "utopia/portal_server/client_connection/client_connection_states.hpp"
 
 #include <boost/sml.hpp>
 
@@ -12,11 +13,9 @@ struct AppStateMachine {
     using namespace utopia::common;
     // clang-format off
     return make_transition_table(
-      * state<AppStates::Initializing> = state<AppStates::Running>
+      * state<ClientConnectionStates::WaitingForClientConnectMsg> = state<ClientConnectionStates::Running>
       
-      , state<AppStates::Running> + event<AppEvents::Tick> / check_for_new_connections = state<AppStates::Running>
-      
-      , state<AppStates::Stopping> = X
+      , state<ClientConnectionStates::Stopping> = X
     );
     // clang-format on
   }

@@ -1,0 +1,22 @@
+First Request from client is:
+P /Sts/Connect STS/1.0
+l:249
+
+<Connect>
+<ConnType>400</ConnType>
+<Address>172.19.0.1</Address>
+<ProductType>0</ProductType>
+<ProductName>Gw</ProductName>
+<AppIndex>1</AppIndex>
+<Epoch>739128788</Epoch>
+<Program>1</Program>
+<Build>1002</Build>
+<Process>14980</Process>
+</Connect>
+
+
+First reply from the server is:
+STS/1.0 400 Success..s:1R..l:46....<Error server="1001" module="2" line="1146"/>
+
+Format is:
+STS/<version_major>.<version_minor> <status_code> Success

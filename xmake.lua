@@ -50,11 +50,14 @@ end
 
 function add_common_requires()
     add_requires("spdlog", "glm", "argparse", "entt", "asio", "mbedtls ~2.28.3", "magic_enum",
-                 "boost_sml", "concurrentqueue", "utfcpp", "ftxui", "boost")
+                 "boost_sml", "concurrentqueue", "utfcpp", "ftxui", "boost", "scnlib",
+                 "pugixml")
 end
 
 function add_common_packages()
-    add_packages("spdlog", "glm", "argparse", "entt", "asio", "mbedtls", "magic_enum", "boost_sml", "concurrentqueue", "utfcpp", "ftxui", "boost")
+    add_packages("spdlog", "glm", "argparse", "entt", "asio", "mbedtls", "magic_enum", 
+                 "boost_sml", "concurrentqueue", "utfcpp", "ftxui", "boost", "scnlib",
+                 "pugixml")
 end
 
 add_common_requires()
