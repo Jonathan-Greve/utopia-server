@@ -10,6 +10,7 @@ ConnectionManager::ConnectionManager(asio::io_context &io_context)
 void ConnectionManager::add_connection(
     std::unique_ptr<ClientConnection> connection) {
   std::lock_guard<std::mutex> lock(connections_mutex_);
+  connection->run();
   connections_.emplace(next_id_++, std::move(connection));
   spdlog::info("Added a new connection with ID {}", next_id_ - 1);
 }

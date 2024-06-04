@@ -11,11 +11,16 @@
 #include <vector>
 
 namespace utopia::portal::client_connection {
-StsConnect::StsConnect(const std::vector<std::uint8_t> &data) {
+
+constexpr char scan_str[] = "P /Sts/Connect STS/{}.{}\r\nl:{}\r\n\r\n{}";
+
+StsConnectPacket::StsConnectPacket(
+    const std::vector<std::uint8_t> &data) noexcept {
   std::string data_str(data.begin(), data.end());
+
   auto scan_result =
       scn::scan<std::uint32_t, std::uint32_t, std::uint32_t, std::string>(
-          data_str, "P /Sts/Connect STS/{}.{}\r\nl:{}\r\n\r\n{}");
+          data_str, scan_str);
 
   if (!scan_result) {
     spdlog::error("Failed to parse STS Connect packet.");
@@ -63,6 +68,10 @@ StsConnect::StsConnect(const std::vector<std::uint8_t> &data) {
   process_id = connect_node.child("Process").text().as_uint();
 
   is_valid_ = true;
+}
+
+std::uint32_t StsConnectPacket::get_packet_size() const noexcept {
+  return sizeof(scan_str) - 5 + xml_content_size;
 }
 
 } // namespace utopia::portal::client_connection

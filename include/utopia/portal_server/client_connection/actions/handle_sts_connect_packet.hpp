@@ -10,13 +10,12 @@
 #include <concurrentqueue.h>
 #include <spdlog/spdlog.h>
 
-namespace client_connection = utopia::portal::client_connection;
+namespace utopia::portal::client_connection {
 
-namespace utopia::portal::app {
-inline const auto check_for_new_connections =
-    [](asio::io_context &io, moodycamel::ConcurrentQueue<AppEvent> *event_queue,
-       AppContext &app_context,
-       client_connection::ConnectionManager &connection_manager) {
+inline const auto handle_sts_connect_packet =
+    [](asio::io_context &io,
+       moodycamel::ConcurrentQueue<app::AppEvent> *event_queue,
+       app::AppContext &app_context, ConnectionManager &connection_manager) {
       auto connection = std::make_unique<client_connection::ClientConnection>(
           io, app_context.port);
 
@@ -25,4 +24,5 @@ inline const auto check_for_new_connections =
         connection_manager.add_connection(std::move(connection));
       }
     };
-} // namespace utopia::portal::app
+
+} // namespace utopia::portal::client_connection

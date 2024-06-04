@@ -3,9 +3,12 @@
 #include "utopia/portal_server/client_connection/client_connection.hpp"
 
 #include "utopia/common/network/connection_base.hpp"
+#include "utopia/portal_server/client_connection/events/client_connection_event.hpp"
 
 #include <asio.hpp>
 #include <spdlog/spdlog.h>
+
+#include <optional>
 
 namespace utopia::portal::client_connection {
 
@@ -20,17 +23,21 @@ ClientConnection::ClientConnection(asio::io_context &io_context,
 }
 
 void ClientConnection::run() {
+  auto event_queue =
+      std::make_unique<moodycamel::ConcurrentQueue<ClientConnectionEvent>>();
+
   spdlog::info("Running client connection.");
   while (is_connected()) {
-    static std::vector<std::uint8_t> recv_buffer(1024);
-    std::fill(recv_buffer.begin(), recv_buffer.end(), 0);
+    ClientConnectionEvents::ClientDataReceived client_data_received_event;
+    client_data_received_event.data.resize(4096);
+    auto num_bytes_read = read_some(client_data_received_event.data);
 
-    std::uint32_t num_bytes_recv = try_read_some(recv_buffer);
-    if (num_bytes_recv > 0) {
-      spdlog::info("Received {} bytes.", num_bytes_recv);
+    if (num_bytes_read) {
+      spdlog::info("Received {} bytes.", num_bytes_read.value());
 
-      std::string recv_data(recv_buffer.begin(),
-                            recv_buffer.begin() + num_bytes_recv);
+      std::string recv_data(client_data_received_event.data.begin(),
+                            client_data_received_event.data.begin() +
+                                num_bytes_read.value());
       spdlog::info("Received data (ASCII): {}", recv_data);
     }
   }
