@@ -49,6 +49,8 @@ void ClientConnection::run() {
                             client_data_received_event.data.begin() +
                                 num_bytes_read.value());
       spdlog::info("Received data (ASCII): {}", recv_data);
+
+      client_connection_sm.process_event(client_data_received_event);
     }
   }
 }
