@@ -5,15 +5,15 @@
 
 namespace sml = boost::sml;
 
-namespace utopia::portal::app {
+namespace utopia::portal::client_connection {
 
-struct AppStateMachine {
+struct ClientConnectionStateMachine {
   auto operator()() const noexcept {
     using namespace sml;
     using namespace utopia::common;
     // clang-format off
     return make_transition_table(
-      * state<ClientConnectionStates::WaitingForClientConnectMsg> = state<ClientConnectionStates::Running>
+      * state<ClientConnectionStates::Connected> = state<ClientConnectionStates::WaitingForClientConnectMsg>
       
       , state<ClientConnectionStates::Stopping> = X
     );
@@ -21,4 +21,4 @@ struct AppStateMachine {
   }
 };
 
-} // namespace utopia::portal::app
+} // namespace utopia::portal::client_connection

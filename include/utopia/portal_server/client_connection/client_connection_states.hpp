@@ -3,6 +3,7 @@
 namespace utopia::portal::client_connection {
 
 struct ClientConnectionStates {
+  struct Connected {};
   struct Disconnected {};
   struct WaitingForClientConnectMsg {};
   struct ReceivedClientConnectMsg {};

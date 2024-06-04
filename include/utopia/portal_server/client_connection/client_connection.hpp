@@ -13,6 +13,9 @@ public:
   ClientConnection(asio::io_context &io_context, unsigned short port);
 
   void run();
+
+private:
+  asio::io_context &io_context_;
 };
 
 } // namespace utopia::portal::client_connection
