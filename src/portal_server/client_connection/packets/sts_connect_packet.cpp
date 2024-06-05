@@ -87,11 +87,13 @@ std::vector<std::uint8_t> StsConnectPacket::serialize() noexcept {
                              "<Process>{}</Process>"
                              "</Connect>",
                              conn_type, product_type, product_name, app_index,
-                             epoch, program, build, process_id);
+                             epoch, program, build, process_id) + '\0';
+  xml_content_size = xml_content_.size();
 
   std::string packet_str =
-      fmt::format("{}{}\0", scan_str, protocol_version_major,
-                  protocol_version_minor, xml_content_size, xml_content_);
+      fmt::format(scan_str, protocol_version_major, protocol_version_minor,
+                  xml_content_size) +
+      xml_content_;
 
   std::vector<std::uint8_t> packet(packet_str.begin(), packet_str.end());
 
