@@ -12,14 +12,14 @@
 
 namespace utopia::portal::client_connection {
 
-constexpr char scan_str[] = "P /Sts/Connect STS/{}.{}\r\nl:{}\r\n\r\n{}";
+constexpr char scan_str[] = "P /Sts/Connect STS/{}.{}\r\nl:{}\r\n\r\n";
 
 StsConnectPacket::StsConnectPacket(
     const std::vector<std::uint8_t> &data) noexcept {
   std::string data_str(data.begin(), data.end());
 
   auto scan_result =
-      scn::scan<std::uint32_t, std::uint32_t, std::uint32_t, std::string>(
+      scn::scan<std::uint32_t, std::uint32_t, std::uint32_t>(
           data_str, scan_str);
 
   if (!scan_result) {
@@ -28,11 +28,11 @@ StsConnectPacket::StsConnectPacket(
     return;
   }
 
-  auto &[major, minor, size, xml_content] = scan_result->values();
+  auto &[major, minor, size] = scan_result->values();
   protocol_version_major = major;
   protocol_version_minor = minor;
   xml_content_size = size;
-  xml_content_ = xml_content;
+  xml_content_ = std::string(scan_result->range().begin(), scan_result->range().end());
 
   if (xml_content_size != xml_content_.size()) {
     spdlog::error("XML content size does not match the expected size.");
@@ -43,7 +43,7 @@ StsConnectPacket::StsConnectPacket(
   // Parse xml into public data members
   pugi::xml_document doc;
   pugi::xml_parse_result xml_parse_result =
-      doc.load_string(xml_content.c_str());
+      doc.load_string(xml_content_.c_str());
 
   if (!xml_parse_result) {
     spdlog::error("Failed to parse XML content.");
