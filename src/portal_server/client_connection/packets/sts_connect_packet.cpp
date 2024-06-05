@@ -18,9 +18,8 @@ StsConnectPacket::StsConnectPacket(
     const std::vector<std::uint8_t> &data) noexcept {
   std::string data_str(data.begin(), data.end());
 
-  auto scan_result =
-      scn::scan<std::uint32_t, std::uint32_t, std::uint32_t>(
-          data_str, scan_str);
+  auto scan_result = scn::scan<std::uint32_t, std::uint32_t, std::uint32_t>(
+      data_str, scan_str);
 
   if (!scan_result) {
     spdlog::error("Failed to parse STS Connect packet.");
@@ -32,7 +31,8 @@ StsConnectPacket::StsConnectPacket(
   protocol_version_major = major;
   protocol_version_minor = minor;
   xml_content_size = size;
-  xml_content_ = std::string(scan_result->range().begin(), scan_result->range().end());
+  xml_content_ =
+      std::string(scan_result->range().begin(), scan_result->range().end());
 
   if (xml_content_size != xml_content_.size()) {
     spdlog::error("XML content size does not match the expected size.");
@@ -71,7 +71,8 @@ StsConnectPacket::StsConnectPacket(
 }
 
 std::uint32_t StsConnectPacket::get_packet_size() const noexcept {
-  return sizeof(scan_str) - 5 + xml_content_size;
+  // -4 (3 * {} + null terminator)
+  return sizeof(scan_str) - 4 + xml_content_size;
 }
 
 } // namespace utopia::portal::client_connection

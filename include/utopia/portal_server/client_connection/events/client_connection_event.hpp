@@ -11,6 +11,8 @@ using ClientConnectionEvent =
     std::variant<ClientConnectionEvents::ClientDataReceived,
                  ClientConnectionEvents::UnableToParsePacket,
                  ClientConnectionEvents::ReceivedValidConnectPacket,
+                 ClientConnectionEvents::UnableToSendPacket,
+                 ClientConnectionEvents::SentConnectReplyPacket,
 
                  StsConnectPacket>;
 } // namespace utopia::portal::client_connection

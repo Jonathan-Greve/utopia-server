@@ -33,7 +33,7 @@ void ClientConnection::run() {
   ClientConnectionLogger client_connection_logger{client_connection_sm_context};
 
   sm<ClientConnectionStateMachine, logger<ClientConnectionLogger>>
-      client_connection_sm{io_context_, client_connection_sm_context,
+      client_connection_sm{this, io_context_, client_connection_sm_context,
                            client_connection_logger};
 
   spdlog::info("Running client connection.");

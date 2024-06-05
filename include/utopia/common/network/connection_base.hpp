@@ -35,6 +35,7 @@ public:
   std::optional<std::uint32_t>
   read_some_and_decrypt(std::vector<std::uint8_t> &data);
   bool encrypt_and_send(const std::vector<std::uint8_t> &data);
+  bool send(const std::vector<std::uint8_t> &data);
 
   bool is_connected();
   bool disconnect();
@@ -52,7 +53,6 @@ protected:
   bool accept_connection(unsigned short port);
   std::optional<std::string> get_local_endpoint_address() const;
   std::optional<std::string> get_remote_endpoint_address() const;
-  bool send(const std::vector<std::uint8_t> &data);
   bool do_key_exchange(const DiffieHellmanKey &dhm_key);
   psa_status_t encrypt(const std::vector<std::uint8_t> &input,
                        std::vector<std::uint8_t> &output);
