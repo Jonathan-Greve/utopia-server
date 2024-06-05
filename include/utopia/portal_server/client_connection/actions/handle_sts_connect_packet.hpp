@@ -15,18 +15,25 @@ inline const auto handle_sts_connect_packet =
     [](asio::io_context &io,
        moodycamel::ConcurrentQueue<ClientConnectionEvent> *event_queue,
        ClientConnectionEvents::ClientDataReceived event) {
-      if (event.data.size() > 0) {
-        StsConnectPacket sts_connect_packet(event.data);
-        if (sts_connect_packet.is_valid()) {
-          spdlog::info("Packet size: {}", sts_connect_packet.get_packet_size());
-        }
+      if (event.data.empty()) {
+        spdlog::error("Received empty data.");
+        return;
+      }
 
-        spdlog::info("Received {} bytes.", event.data.size());
+      StsConnectPacket sts_connect_packet(event.data);
+      if (!sts_connect_packet.is_valid()) {
+        spdlog::error("STS Connect packet is invalid.");
+        spdlog::debug("STS Connect packet recv {} bytes.", event.data.size());
 
         std::string recv_data(event.data.begin(),
                               event.data.begin() + event.data.size());
-        spdlog::info("Received data (ASCII): {}", recv_data);
+        spdlog::debug("STS Connect packet data (ASCII): {}", recv_data);
+
+        event_queue->enqueue(ClientConnectionEvent{
+            ClientConnectionEvents::UnableToParsePacket{}});
       }
+
+      spdlog::debug("STS Connect packet is valid.");
     };
 
 } // namespace utopia::portal::client_connection

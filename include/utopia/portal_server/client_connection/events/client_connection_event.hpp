@@ -9,7 +9,8 @@ namespace utopia::portal::client_connection {
 
 using ClientConnectionEvent =
     std::variant<ClientConnectionEvents::ClientDataReceived,
-                 ClientConnectionEvents::UnableToParseMessage,
+                 ClientConnectionEvents::UnableToParsePacket,
+                 ClientConnectionEvents::ReceivedValidConnectPacket,
 
                  StsConnectPacket>;
 } // namespace utopia::portal::client_connection

@@ -7,7 +7,8 @@ struct ClientConnectionEvents {
     std::vector<std::uint8_t> data;
   };
 
-  struct UnableToParseMessage {};
+  struct UnableToParsePacket {};
+  struct ReceivedValidConnectPacket {};
 };
 
 } // namespace utopia::portal::client_connection
