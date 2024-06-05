@@ -90,6 +90,8 @@ void App::run() noexcept {
     }
 
     app_sm.process_event(AppEvents::Tick{});
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 
   io.stop();
