@@ -134,7 +134,12 @@ ConnectionBase::read_some(std::vector<std::uint8_t> &data) {
   const std::size_t length = socket_.read_some(asio::buffer(data), ec);
 
   if (ec) {
-    spdlog::error("Failed to receive data: {}", ec.message());
+    if (ec == asio::error::eof || ec == asio::error::connection_reset) {
+      spdlog::info("Client disconnected");
+      socket_.close();
+    } else {
+      spdlog::error("Failed to receive data: {}", ec.message());
+    }
     return std::nullopt;
   }
 

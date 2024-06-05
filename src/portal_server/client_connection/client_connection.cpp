@@ -41,8 +41,9 @@ void ClientConnection::run() {
     ClientConnectionEvents::ClientDataReceived client_data_received_event;
     client_data_received_event.data.resize(4096);
     auto num_bytes_read = read_some(client_data_received_event.data);
-
-    client_connection_sm.process_event(client_data_received_event);
+    if (num_bytes_read) {
+      client_connection_sm.process_event(client_data_received_event);
+    }
   }
 }
 
