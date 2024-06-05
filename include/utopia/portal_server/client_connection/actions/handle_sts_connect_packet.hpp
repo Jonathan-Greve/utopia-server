@@ -34,6 +34,8 @@ inline const auto handle_sts_connect_packet =
       }
 
       spdlog::debug("STS Connect packet is valid.");
+      event_queue->enqueue(ClientConnectionEvent{
+          ClientConnectionEvents::ReceivedValidConnectPacket{}});
     };
 
 } // namespace utopia::portal::client_connection
