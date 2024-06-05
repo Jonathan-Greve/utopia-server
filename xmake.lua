@@ -68,6 +68,7 @@ target("utopia-server")
     set_warnings("all")
     add_common_packages()
     add_files("src/**.cpp")
+    add_headerfiles("include/**.hpp")
     add_includedirs("include/")
     add_platform_specific_flags()
 
