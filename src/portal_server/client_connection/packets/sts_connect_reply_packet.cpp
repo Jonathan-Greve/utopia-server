@@ -12,7 +12,8 @@
 
 namespace utopia::portal::client_connection {
 
-constexpr char scan_str[] = "STS/{}.{} {} Success\r\ns:{}\r\nl:{}\r\n\r\n";
+constexpr std::string_view scan_str =
+    "STS/{}.{} {} Success\r\ns:{}\r\nl:{}\r\n\r\n";
 
 StsConnectReplyPacket::StsConnectReplyPacket(
     const std::vector<std::uint8_t> &data) noexcept {
@@ -74,8 +75,7 @@ StsConnectReplyPacket::StsConnectReplyPacket(
 }
 
 std::uint32_t StsConnectReplyPacket::get_packet_size() const noexcept {
-  // -4 (3 * {} + null terminator)
-  return sizeof(scan_str) - 4 + xml_content_size;
+  return sizeof(scan_str) - 5 + xml_content_size;
 }
 
 std::vector<std::uint8_t> StsConnectReplyPacket::serialize() noexcept {

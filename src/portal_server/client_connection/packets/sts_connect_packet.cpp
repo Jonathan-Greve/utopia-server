@@ -12,7 +12,8 @@
 
 namespace utopia::portal::client_connection {
 
-constexpr char scan_str[] = "P /Sts/Connect STS/{}.{}\r\nl:{}\r\n\r\n";
+constexpr std::string_view scan_str =
+    "P /Sts/Connect STS/{}.{}\r\nl:{}\r\n\r\n";
 
 StsConnectPacket::StsConnectPacket(
     const std::vector<std::uint8_t> &data) noexcept {
@@ -71,8 +72,7 @@ StsConnectPacket::StsConnectPacket(
 }
 
 std::uint32_t StsConnectPacket::get_packet_size() const noexcept {
-  // -4 (3 * {} + null terminator)
-  return sizeof(scan_str) - 4 + xml_content_size;
+  return sizeof(scan_str) - 3 + xml_content_size;
 }
 
 } // namespace utopia::portal::client_connection
