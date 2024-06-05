@@ -75,4 +75,27 @@ std::uint32_t StsConnectPacket::get_packet_size() const noexcept {
   return sizeof(scan_str) - 3 + xml_content_size;
 }
 
+std::vector<std::uint8_t> StsConnectPacket::serialize() noexcept {
+  xml_content_ = fmt::format("<Connect>"
+                             "<ConnType>{}</ConnType>"
+                             "<ProductType>{}</ProductType>"
+                             "<ProductName>{}</ProductName>"
+                             "<AppIndex>{}</AppIndex>"
+                             "<Epoch>{}</Epoch>"
+                             "<Program>{}</Program>"
+                             "<Build>{}</Build>"
+                             "<Process>{}</Process>"
+                             "</Connect>",
+                             conn_type, product_type, product_name, app_index,
+                             epoch, program, build, process_id);
+
+  std::string packet_str =
+      fmt::format("{}{}\0", scan_str, protocol_version_major,
+                  protocol_version_minor, xml_content_size, xml_content_);
+
+  std::vector<std::uint8_t> packet(packet_str.begin(), packet_str.end());
+
+  return packet;
+}
+
 } // namespace utopia::portal::client_connection

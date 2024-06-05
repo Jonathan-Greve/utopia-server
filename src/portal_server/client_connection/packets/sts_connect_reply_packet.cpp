@@ -83,9 +83,9 @@ std::vector<std::uint8_t> StsConnectReplyPacket::serialize() noexcept {
       std::format(R"(<Error server="{}" module="{}" line="{}"/>)",
                   xml_content_server, xml_content_module, xml_content_line);
 
-  std::string packet_str = std::format("{}{}", scan_str, protocol_version_major,
-                                       protocol_version_minor, conn_type,
-                                       reply_sequence_number, xml_content_size);
+  std::string packet_str = std::format(
+      "{}{}\0", scan_str, protocol_version_major, protocol_version_minor,
+      conn_type, reply_sequence_number, xml_content_size, xml_content_);
 
   std::vector<std::uint8_t> packet(packet_str.begin(), packet_str.end());
 

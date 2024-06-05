@@ -19,6 +19,8 @@ public:
   // packet serialized. Not the size of this class in memory.
   std::uint32_t get_packet_size() const noexcept;
 
+  std::vector<std::uint8_t> serialize() noexcept;
+
   std::uint32_t protocol_version_major;
   std::uint32_t protocol_version_minor;
   std::uint32_t xml_content_size;
