@@ -34,10 +34,16 @@ void ClientConnection::run() {
 
   sm<ClientConnectionStateMachine, logger<ClientConnectionLogger>>
       client_connection_sm{*this, io_context_, client_connection_sm_context,
-                           client_connection_logger};
+                           client_connection_logger, event_queue.get()};
 
   spdlog::info("Running client connection.");
   while (is_connected()) {
+    ClientConnectionEvent event;
+    while (event_queue->try_dequeue(event)) {
+      std::visit([&](auto &&x) { client_connection_sm.process_event(x); },
+                 event);
+    }
+
     ClientConnectionEvents::ClientDataReceived client_data_received_event;
     client_data_received_event.data.resize(4096);
     auto num_bytes_read = read_some(client_data_received_event.data);
