@@ -96,7 +96,7 @@ std::vector<std::uint8_t> StsConnectPacket::serialize() noexcept {
                              conn_type, product_type, product_name, app_index,
                              epoch, program, build, process_id) +
                  '\0';
-  xml_content_size = xml_content_.size();
+  xml_content_size = static_cast<uint32_t>(xml_content_.size());
 
   std::string packet_str =
       fmt::format(scan_str, protocol_version_major, protocol_version_minor,

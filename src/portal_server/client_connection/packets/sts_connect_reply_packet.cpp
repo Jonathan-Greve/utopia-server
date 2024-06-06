@@ -91,7 +91,7 @@ std::vector<std::uint8_t> StsConnectReplyPacket::serialize() noexcept {
       std::format(R"(<Error server="{}" module="{}" line="{}"/>)",
                   xml_content_server, xml_content_module, xml_content_line) +
       '\0';
-  xml_content_size = xml_content_.size();
+  xml_content_size = static_cast<uint32_t>(xml_content_.size());
 
   std::string packet_str =
       std::format(scan_str, protocol_version_major, protocol_version_minor,
