@@ -2,6 +2,9 @@
 
 #include "utopia/portal_server/client_connection/packets/sts_connect_packet.hpp"
 
+#include "utopia/common/integers/count_digits.hpp"
+#include "utopia/common/strings/get_format_string_length_ignoring_curly_brackets.hpp"
+
 #include <pugixml.hpp>
 #include <scn/scan.h>
 #include <spdlog/spdlog.h>
@@ -72,7 +75,11 @@ StsConnectPacket::StsConnectPacket(
 }
 
 std::uint32_t StsConnectPacket::get_packet_size() const noexcept {
-  return sizeof(scan_str) - 3 + xml_content_size;
+  using namespace common;
+  return get_format_string_length_ignoring_curly_brackets(scan_str) +
+         count_digits(protocol_version_major) +
+         count_digits(protocol_version_minor) + count_digits(xml_content_size) +
+         xml_content_size;
 }
 
 std::vector<std::uint8_t> StsConnectPacket::serialize() noexcept {
@@ -87,7 +94,8 @@ std::vector<std::uint8_t> StsConnectPacket::serialize() noexcept {
                              "<Process>{}</Process>"
                              "</Connect>",
                              conn_type, product_type, product_name, app_index,
-                             epoch, program, build, process_id) + '\0';
+                             epoch, program, build, process_id) +
+                 '\0';
   xml_content_size = xml_content_.size();
 
   std::string packet_str =

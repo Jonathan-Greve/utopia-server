@@ -7,6 +7,7 @@
 #include "utopia/portal_server/client_connection/client_connection_logger.hpp"
 #include "utopia/portal_server/client_connection/client_connection_state_machine.hpp"
 #include "utopia/portal_server/client_connection/events/client_connection_event.hpp"
+#include "utopia/portal_server/client_connection/packets/sts_connect_packet.hpp"
 
 #include <asio.hpp>
 #include <spdlog/spdlog.h>
@@ -36,6 +37,8 @@ void ClientConnection::run() {
       client_connection_sm{*this, io_context_, client_connection_sm_context,
                            client_connection_logger, event_queue.get()};
 
+  std::vector<std::uint8_t> recv_buf;
+
   spdlog::info("Running client connection.");
   while (is_connected()) {
     ClientConnectionEvent event;
@@ -44,12 +47,34 @@ void ClientConnection::run() {
                  event);
     }
 
-    ClientConnectionEvents::ClientDataReceived client_data_received_event;
-    client_data_received_event.data.resize(4096);
-    auto num_bytes_read = read_some(client_data_received_event.data);
-    if (num_bytes_read) {
-      client_connection_sm.process_event(client_data_received_event);
+    auto num_bytes_read = read_some(recv_buf);
+    if (!num_bytes_read) {
+      continue;
     }
+
+    // Try to dispatch the packet to the state machine if the received data
+    // forms a valid packet
+    StsConnectPacket sts_connect_packet(recv_buf);
+    if (sts_connect_packet.is_valid()) {
+      client_connection_sm.process_event(sts_connect_packet);
+      recv_buf.erase(recv_buf.begin(),
+                     recv_buf.begin() + sts_connect_packet.get_packet_size());
+      continue;
+    }
+
+    StsConnectReplyPacket sts_connect_reply_packet(recv_buf);
+    if (sts_connect_reply_packet.is_valid()) {
+      client_connection_sm.process_event(sts_connect_reply_packet);
+      recv_buf.erase(recv_buf.begin(),
+                     recv_buf.begin() +
+                         sts_connect_reply_packet.get_packet_size());
+      continue;
+    }
+
+    // Log recv buf as ascii
+    spdlog::debug("Received data ({} bytes) (ASCII):\n{}",
+                  num_bytes_read.value(),
+                  std::string(recv_buf.begin(), recv_buf.end()));
   }
 }
 

@@ -131,7 +131,8 @@ ConnectionBase::read_some(std::vector<std::uint8_t> &data) {
   }
 
   asio::error_code ec;
-  const std::size_t length = socket_.read_some(asio::buffer(data), ec);
+  std::vector<std::uint8_t> recv_buffer(10000);
+  const std::size_t length = socket_.read_some(asio::buffer(recv_buffer), ec);
 
   if (ec) {
     if (ec == asio::error::eof || ec == asio::error::connection_reset) {
@@ -143,7 +144,8 @@ ConnectionBase::read_some(std::vector<std::uint8_t> &data) {
     return std::nullopt;
   }
 
-  data.resize(length); // Resize to actual data length received
+  recv_buffer.resize(length); // Resize to actual data length received
+  data.insert(data.end(), recv_buffer.begin(), recv_buffer.end());
   return static_cast<std::uint32_t>(length);
 }
 
