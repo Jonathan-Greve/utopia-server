@@ -16,7 +16,8 @@
 namespace utopia::portal::client_connection {
 
 constexpr std::string_view scan_str =
-    "P /Sts/Connect STS/{}.{}\r\nl:{}\r\n\r\n";
+    "P /Sts/Connect STS/{}.{}\r\nl:{}";
+constexpr std::uint32_t header_end_size = 4; // before xml_content_ we have "\r\n\r\n" that we wish to skip
 
 StsConnectPacket::StsConnectPacket(
     const std::vector<std::uint8_t> &data) noexcept {
@@ -35,8 +36,8 @@ StsConnectPacket::StsConnectPacket(
   protocol_version_major = major;
   protocol_version_minor = minor;
   xml_content_size = size;
-  xml_content_ =
-      std::string(scan_result->range().begin(), scan_result->range().end());
+  xml_content_ = std::string(scan_result->range().begin() + header_end_size,
+                             scan_result->range().end());
 
   if (xml_content_size != xml_content_.size()) {
     spdlog::error("XML content size does not match the expected size.");
@@ -79,7 +80,8 @@ std::uint32_t StsConnectPacket::get_packet_size() const noexcept {
   return get_format_string_length_ignoring_curly_brackets(scan_str) +
          count_digits(protocol_version_major) +
          count_digits(protocol_version_minor) + count_digits(xml_content_size) +
-         xml_content_size;
+         xml_content_size + header_end_size +
+         (xml_content_size > 0 ? 1: 0); // add 1 because of newline after packet
 }
 
 std::vector<std::uint8_t> StsConnectPacket::serialize() noexcept {
@@ -92,10 +94,9 @@ std::vector<std::uint8_t> StsConnectPacket::serialize() noexcept {
                              "<Program>{}</Program>"
                              "<Build>{}</Build>"
                              "<Process>{}</Process>"
-                             "</Connect>",
+                             "</Connect>\n",
                              conn_type, product_type, product_name, app_index,
-                             epoch, program, build, process_id) +
-                 '\0';
+                             epoch, program, build, process_id);
   xml_content_size = static_cast<uint32_t>(xml_content_.size());
 
   std::string packet_str =

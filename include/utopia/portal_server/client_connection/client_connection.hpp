@@ -21,6 +21,7 @@ private:
   inline bool dispatch_sts_packet(std::vector<uint8_t> &data) {
     PacketType packet(data);
     if (packet.is_valid()) {
+      spdlog::debug("Packet size: {}", packet.get_packet_size());
       data.erase(data.begin(), data.begin() + packet.get_packet_size());
       return true;
     }

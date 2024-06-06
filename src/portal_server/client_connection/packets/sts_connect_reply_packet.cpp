@@ -16,7 +16,8 @@
 namespace utopia::portal::client_connection {
 
 constexpr std::string_view scan_str =
-    "STS/{}.{} {} Success\r\ns:{}\r\nl:{}\r\n\r\n";
+    "STS/{}.{} {} Success\r\ns:{}\r\nl:{}";
+constexpr std::uint32_t header_end_size = 4; // before xml_content_ we have "\r\n\r\n" that we wish to skip
 
 StsConnectReplyPacket::StsConnectReplyPacket(
     const std::vector<std::uint8_t> &data) noexcept {
@@ -40,8 +41,8 @@ StsConnectReplyPacket::StsConnectReplyPacket(
   conn_type = conn_type;
   reply_sequence_number = sequence_number;
   xml_content_size = size;
-  xml_content_ =
-      std::string(scan_result->range().begin(), scan_result->range().end());
+  xml_content_ = std::string(scan_result->range().begin() + header_end_size,
+                             scan_result->range().end());
 
   if (xml_content_size != xml_content_.size()) {
     spdlog::error("XML content size does not match the expected size.");
@@ -83,14 +84,15 @@ std::uint32_t StsConnectReplyPacket::get_packet_size() const noexcept {
          count_digits(protocol_version_major) +
          count_digits(protocol_version_minor) + count_digits(conn_type) +
          count_digits(reply_sequence_number) + count_digits(xml_content_size) +
-         xml_content_size;
+         xml_content_size + header_end_size +
+         (xml_content_size > 0 ? 1: 0); // add 1 because of newline after packet
 }
 
 std::vector<std::uint8_t> StsConnectReplyPacket::serialize() noexcept {
   xml_content_ =
       std::format(R"(<Error server="{}" module="{}" line="{}"/>)",
                   xml_content_server, xml_content_module, xml_content_line) +
-      '\0';
+      '\n';
   xml_content_size = static_cast<uint32_t>(xml_content_.size());
 
   std::string packet_str =

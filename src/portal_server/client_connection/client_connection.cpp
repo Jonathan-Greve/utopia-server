@@ -8,6 +8,7 @@
 #include "utopia/portal_server/client_connection/client_connection_state_machine.hpp"
 #include "utopia/portal_server/client_connection/events/client_connection_event.hpp"
 #include "utopia/portal_server/client_connection/packets/sts_connect_packet.hpp"
+#include "utopia/portal_server/client_connection/packets/sts_ping_packet.hpp"
 
 #include <asio.hpp>
 #include <spdlog/spdlog.h>
@@ -68,6 +69,8 @@ bool ClientConnection::dispatch_sts_packets(std::vector<std::uint8_t> &data) {
   if (dispatch_sts_packet<StsConnectPacket>(data))
     return true;
   if (dispatch_sts_packet<StsConnectReplyPacket>(data))
+    return true;
+  if (dispatch_sts_packet<StsPingPacket>(data))
     return true;
 
   return false;
