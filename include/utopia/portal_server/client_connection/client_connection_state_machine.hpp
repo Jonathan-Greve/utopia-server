@@ -23,6 +23,9 @@ struct ClientConnectionStateMachine {
       , state<ClientConnectionStates::WaitingForClientConnectMsg> + event<ClientConnectionEvents::UnableToParsePacket> = state<ClientConnectionStates::Stopping> 
 
       , state<ClientConnectionStates::ReceivedConnectPacket> + on_entry<_> / send_sts_connect_reply_packet 
+      , state<ClientConnectionStates::ReceivedConnectPacket> + event<ClientConnectionEvents::SentConnectReplyPacket> = state<ClientConnectionStates::SentConnectReplyPacket>
+
+      , state<ClientConnectionStates::SentConnectReplyPacket> + event<ClientConnectionEvents::ClientDataReceived> / handle_sts_connect_packet
       
       , state<ClientConnectionStates::Stopping> = X
     );
