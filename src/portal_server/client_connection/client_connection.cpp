@@ -52,30 +52,25 @@ void ClientConnection::run() {
       continue;
     }
 
-    // Try to dispatch the packet to the state machine if the received data
-    // forms a valid packet
-    StsConnectPacket sts_connect_packet(recv_buf);
-    if (sts_connect_packet.is_valid()) {
-      client_connection_sm.process_event(sts_connect_packet);
-      recv_buf.erase(recv_buf.begin(),
-                     recv_buf.begin() + sts_connect_packet.get_packet_size());
-      continue;
+    if (!dispatch_sts_packets(recv_buf)) {
+      // Log recv buf as ascii
+      spdlog::debug("Received data ({} bytes) (ASCII):\n{}",
+                    num_bytes_read.value(),
+                    std::string(recv_buf.begin(), recv_buf.end()));
     }
-
-    StsConnectReplyPacket sts_connect_reply_packet(recv_buf);
-    if (sts_connect_reply_packet.is_valid()) {
-      client_connection_sm.process_event(sts_connect_reply_packet);
-      recv_buf.erase(recv_buf.begin(),
-                     recv_buf.begin() +
-                         sts_connect_reply_packet.get_packet_size());
-      continue;
-    }
-
-    // Log recv buf as ascii
-    spdlog::debug("Received data ({} bytes) (ASCII):\n{}",
-                  num_bytes_read.value(),
-                  std::string(recv_buf.begin(), recv_buf.end()));
   }
+}
+
+bool ClientConnection::dispatch_sts_packets(std::vector<std::uint8_t> &data) {
+  std::optional<StsConnectPacket> sts_connect_packet;
+  std::optional<StsConnectReplyPacket> sts_connect_reply_packet;
+
+  if (dispatch_sts_packet<StsConnectPacket>(data))
+    return true;
+  if (dispatch_sts_packet<StsConnectReplyPacket>(data))
+    return true;
+
+  return false;
 }
 
 } // namespace utopia::portal::client_connection
