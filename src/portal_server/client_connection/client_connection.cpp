@@ -10,6 +10,7 @@
 #include "utopia/portal_server/client_connection/packets/sts_connect_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/sts_ping_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/sts_start_tls_packet.hpp"
+#include "utopia/portal_server/client_connection/packets/tls_client_hello_packet.hpp"
 
 #include <asio.hpp>
 #include <boost/sml.hpp>
@@ -73,6 +74,9 @@ bool ClientConnection::dispatch_sts_packets(
   if (dispatch_sts_packet<StsPingPacket>(data, sm))
     return true;
   if (dispatch_sts_packet<StsStartTlsPacket>(data, sm))
+    return true;
+
+  if (dispatch_sts_packet<TlsClientHelloPacket>(data, sm))
     return true;
 
   return false;

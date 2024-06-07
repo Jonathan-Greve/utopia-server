@@ -2,13 +2,8 @@
 
 #include "utopia/portal_server/client_connection/packets/tls_client_hello_packet.hpp"
 
-#include <mbedtls/aes.h>
-#include <mbedtls/bignum.h>
-#include <mbedtls/ctr_drbg.h>
-#include <mbedtls/entropy.h>
-#include <mbedtls/md.h>
-#include <mbedtls/sha1.h>
-#include <mbedtls/sha256.h>
+#include "utopia/common/network/endian/endian.hpp"
+
 #include <spdlog/spdlog.h>
 
 #include <array>
@@ -25,12 +20,12 @@ TlsClientHelloPacket::TlsClientHelloPacket(std::vector<uint8_t> &data) {
     throw std::invalid_argument("Invalid TLS packet type");
   }
 
-  tls_version = (data[1] << 8) | data[2];
+  tls_version = utopia::common::be16_dec(data.data() + 1);
   if (tls_version != 0x0303) {
     throw std::invalid_argument("Invalid TLS version");
   }
 
-  size = (data[3] << 8) | data[4];
+  size = utopia::common::be16_dec(data.data() + 3);
   if (size != data.size() - 5) {
     throw std::invalid_argument("Invalid TLS packet size");
   }
@@ -41,7 +36,7 @@ TlsClientHelloPacket::TlsClientHelloPacket(std::vector<uint8_t> &data) {
   }
 
   std::copy(data.begin() + 6, data.begin() + 9, msg_length.begin());
-  client_version = (data[9] << 8) | data[10];
+  client_version = utopia::common::be16_dec(data.data() + 9);
   if (client_version != 0x0303) {
     throw std::invalid_argument("Invalid TLS client version");
   }
@@ -52,24 +47,29 @@ TlsClientHelloPacket::TlsClientHelloPacket(std::vector<uint8_t> &data) {
     throw std::invalid_argument("Invalid TLS session id");
   }
 
-  for (int i = 0; i < 6; ++i) {
-    cipther_suites[i] = (data[44 + i * 2] << 8) | data[45 + i * 2];
+  num_cipher_bytes = utopia::common::be16_dec(data.data() + 44);
+  if (num_cipher_bytes != 12) {
+    throw std::invalid_argument("Invalid TLS cipher suites length");
   }
-  if (cipther_suites[0] != 0xC020 || cipther_suites[1] != 0xC01D ||
-      cipther_suites[2] != 0xFF02 || cipther_suites[3] != 0xFF01 ||
-      cipther_suites[4] != 0xFF04 || cipther_suites[5] != 0xFF03) {
+
+  for (int i = 0; i < 6; ++i) {
+    cipher_suites[i] = utopia::common::be16_dec(data.data() + 46 + i * 2);
+  }
+  if (cipher_suites[0] != 0xC020 || cipher_suites[1] != 0xC01D ||
+      cipher_suites[2] != 0xFF02 || cipher_suites[3] != 0xFF01 ||
+      cipher_suites[4] != 0xFF04 || cipher_suites[5] != 0xFF03) {
     throw std::invalid_argument("Invalid TLS cipher suites");
   }
 
-  compression_methods[0] = data[56];
-  compression_methods[1] = data[57];
+  compression_methods[0] = data[58];
+  compression_methods[1] = data[59];
   if (compression_methods[0] != 1 || compression_methods[1] != 0) {
     throw std::invalid_argument("Invalid TLS compression methods");
   }
 
-  extensions_length = (data[58] << 8) | data[59];
-  extension0_type = (data[60] << 8) | data[61];
-  extension0_length = (data[62] << 8) | data[63];
+  extensions_length = utopia::common::be16_dec(data.data() + 60);
+  extension0_type = utopia::common::be16_dec(data.data() + 62);
+  extension0_length = utopia::common::be16_dec(data.data() + 64);
   if (extension0_type != 0xADAE) {
     throw std::invalid_argument("Invalid TLS extension type");
   }
@@ -77,69 +77,61 @@ TlsClientHelloPacket::TlsClientHelloPacket(std::vector<uint8_t> &data) {
     throw std::invalid_argument("Invalid TLS extension length");
   }
 
-  extension_srp_type = (data[64] << 8) | data[65];
+  extension_srp_type = utopia::common::be16_dec(data.data() + 66);
   if (extension_srp_type != 0x000c) {
     throw std::invalid_argument("Invalid TLS SRP extension type");
   }
 
-  extension_srp_length = (data[66] << 8) | data[67];
-  if (extension_srp_length + 68 != data.size()) {
+  extension_srp_length = utopia::common::be16_dec(data.data() + 68);
+  if (extension_srp_length + 70 != data.size()) {
     throw std::invalid_argument("Invalid TLS SRP extension length");
   }
 
-  extension_srp_data_length = data[68];
+  extension_srp_data_length = data[70];
   if (extension_srp_data_length != extension_srp_length - 1) {
     throw std::invalid_argument("Invalid TLS SRP extension data length");
   }
 
-  if (data.size() < 69 + extension_srp_data_length) {
+  if (data.size() < 71 + extension_srp_data_length) {
     throw std::invalid_argument(
         "Data size is too small for the specified SRP extension data length");
   }
 
-  extension_srp_data.assign(data.begin() + 69,
-                            data.begin() + 69 + extension_srp_data_length);
+  extension_srp_data.assign(data.begin() + 71,
+                            data.begin() + 71 + extension_srp_data_length);
 
   is_valid_ = true;
 }
 
-std::uint32_t TlsClientHelloPacket::get_packet_size() {
-  return 69 + extension_srp_data.size();
+std::uint32_t TlsClientHelloPacket::get_packet_size() const noexcept {
+  return 71 + extension_srp_data.size();
 }
 
 std::vector<uint8_t> TlsClientHelloPacket::serialize() {
   std::vector<uint8_t> packet;
   packet.push_back(type);
-  packet.push_back(tls_version >> 8);
-  packet.push_back(tls_version & 0xFF);
-  packet.push_back(size >> 8);
-  packet.push_back(size & 0xFF);
+  utopia::common::be16_enc(packet.data() + 1, tls_version);
+  utopia::common::be16_enc(packet.data() + 3, size);
   packet.push_back(msg_type);
   packet.insert(packet.end(), msg_length.begin(), msg_length.end());
-  packet.push_back(client_version >> 8);
-  packet.push_back(client_version & 0xFF);
+  utopia::common::be16_enc(packet.data() + 9, client_version);
   packet.insert(packet.end(), random.begin(), random.end());
   packet.push_back(session_id);
+  utopia::common::be16_enc(packet.data() + 44, num_cipher_bytes);
   for (int i = 0; i < 6; ++i) {
-    packet.push_back(cipther_suites[i] >> 8);
-    packet.push_back(cipther_suites[i] & 0xFF);
+    utopia::common::be16_enc(packet.data() + 46 + i * 2, cipher_suites[i]);
   }
   packet.push_back(compression_methods[0]);
   packet.push_back(compression_methods[1]);
-  packet.push_back(extensions_length >> 8);
-  packet.push_back(extensions_length & 0xFF);
-  packet.push_back(extension0_type >> 8);
-  packet.push_back(extension0_type & 0xFF);
-  packet.push_back(extension0_length >> 8);
-  packet.push_back(extension0_length & 0xFF);
-  packet.push_back(extension_srp_type >> 8);
-  packet.push_back(extension_srp_type & 0xFF);
+  utopia::common::be16_enc(packet.data() + 60, extensions_length);
+  utopia::common::be16_enc(packet.data() + 62, extension0_type);
+  utopia::common::be16_enc(packet.data() + 64, extension0_length);
+  utopia::common::be16_enc(packet.data() + 66, extension_srp_type);
 
   extension_srp_length = extension_srp_data.size() + 1;
   extension_srp_data_length = extension_srp_data.size();
 
-  packet.push_back(extension_srp_length >> 8);
-  packet.push_back(extension_srp_length & 0xFF);
+  utopia::common::be16_enc(packet.data() + 68, extension_srp_length);
   packet.push_back(extension_srp_data_length);
   packet.insert(packet.end(), extension_srp_data.begin(),
                 extension_srp_data.end());
