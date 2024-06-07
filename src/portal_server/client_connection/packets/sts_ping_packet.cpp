@@ -51,7 +51,7 @@ std::uint32_t StsPingPacket::get_packet_size() const noexcept {
   return get_format_string_length_ignoring_curly_brackets(scan_str) +
          count_digits(protocol_version_major) +
          count_digits(protocol_version_minor) + count_digits(xml_content_size) +
-         xml_content_size + header_end_size + (xml_content_size > 0 ? 1 : 0);
+         xml_content_size + header_end_size;
 }
 
 std::vector<std::uint8_t> StsPingPacket::serialize() noexcept {

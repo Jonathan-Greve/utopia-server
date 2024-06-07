@@ -15,9 +15,9 @@
 
 namespace utopia::portal::client_connection {
 
-constexpr std::string_view scan_str =
-    "P /Sts/Connect STS/{}.{}\r\nl:{}";
-constexpr std::uint32_t header_end_size = 4; // before xml_content_ we have "\r\n\r\n" that we wish to skip
+constexpr std::string_view scan_str = "P /Sts/Connect STS/{}.{}\r\nl:{}";
+constexpr std::uint32_t header_end_size =
+    4; // before xml_content_ we have "\r\n\r\n" that we wish to skip
 
 StsConnectPacket::StsConnectPacket(
     const std::vector<std::uint8_t> &data) noexcept {
@@ -80,8 +80,7 @@ std::uint32_t StsConnectPacket::get_packet_size() const noexcept {
   return get_format_string_length_ignoring_curly_brackets(scan_str) +
          count_digits(protocol_version_major) +
          count_digits(protocol_version_minor) + count_digits(xml_content_size) +
-         xml_content_size + header_end_size +
-         (xml_content_size > 0 ? 1: 0); // add 1 because of newline after packet
+         xml_content_size + header_end_size;
 }
 
 std::vector<std::uint8_t> StsConnectPacket::serialize() noexcept {

@@ -84,8 +84,7 @@ std::uint32_t StsConnectReplyPacket::get_packet_size() const noexcept {
          count_digits(protocol_version_major) +
          count_digits(protocol_version_minor) + count_digits(conn_type) +
          count_digits(reply_sequence_number) + count_digits(xml_content_size) +
-         xml_content_size + header_end_size +
-         (xml_content_size > 0 ? 1: 0); // add 1 because of newline after packet
+         xml_content_size + header_end_size;
 }
 
 std::vector<std::uint8_t> StsConnectReplyPacket::serialize() noexcept {
