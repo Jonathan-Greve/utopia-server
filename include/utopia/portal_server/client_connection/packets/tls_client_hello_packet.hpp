@@ -7,17 +7,17 @@
 
 namespace utopia::portal::client_connection {
 
-class SslClientHandshakePacket {
+class TlsClientHelloPacket {
 public:
-  SslClientHandshakePacket() = default;
-  SslClientHandshakePacket(std::vector<uint8_t> &data);
+  TlsClientHelloPacket() = default;
+  TlsClientHelloPacket(std::vector<uint8_t> &data);
 
   std::uint32_t get_packet_size();
 
   std::vector<uint8_t> serialize();
 
   std::uint8_t type = 0x16;                        // byte 0
-  std::uint16_t ssl_version = 0x0303;              // bytes 1-2
+  std::uint16_t tls_version = 0x0303;              // bytes 1-2
   std::uint16_t size = 0;                          // bytes 3-4
   std::uint8_t msg_type = 1;                       // byte 5
   std::array<std::uint8_t, 3> msg_length{0, 0, 0}; // bytes 6-8

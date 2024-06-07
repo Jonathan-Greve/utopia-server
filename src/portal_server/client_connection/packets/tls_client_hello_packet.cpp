@@ -1,6 +1,6 @@
 #pragma once
 
-#include "utopia/portal_server/client_connection/packets/ssl_client_handshake_packet.hpp"
+#include "utopia/portal_server/client_connection/packets/tls_client_hello_packet.hpp"
 
 #include <mbedtls/aes.h>
 #include <mbedtls/bignum.h>
@@ -19,37 +19,37 @@
 
 namespace utopia::portal::client_connection {
 
-SslClientHandshakePacket::SslClientHandshakePacket(std::vector<uint8_t> &data) {
+TlsClientHelloPacket::TlsClientHelloPacket(std::vector<uint8_t> &data) {
   type = data[0];
   if (type != 0x16) {
-    throw std::invalid_argument("Invalid SSL packet type");
+    throw std::invalid_argument("Invalid TLS packet type");
   }
 
-  ssl_version = (data[1] << 8) | data[2];
-  if (ssl_version != 0x0303) {
-    throw std::invalid_argument("Invalid SSL version");
+  tls_version = (data[1] << 8) | data[2];
+  if (tls_version != 0x0303) {
+    throw std::invalid_argument("Invalid TLS version");
   }
 
   size = (data[3] << 8) | data[4];
   if (size != data.size() - 5) {
-    throw std::invalid_argument("Invalid SSL packet size");
+    throw std::invalid_argument("Invalid TLS packet size");
   }
 
   msg_type = data[5];
   if (msg_type != 1) {
-    throw std::invalid_argument("Invalid SSL message type");
+    throw std::invalid_argument("Invalid TLS message type");
   }
 
   std::copy(data.begin() + 6, data.begin() + 9, msg_length.begin());
   client_version = (data[9] << 8) | data[10];
   if (client_version != 0x0303) {
-    throw std::invalid_argument("Invalid SSL client version");
+    throw std::invalid_argument("Invalid TLS client version");
   }
 
   std::copy(data.begin() + 11, data.begin() + 43, random.begin());
   session_id = data[43];
   if (session_id != 0) {
-    throw std::invalid_argument("Invalid SSL session id");
+    throw std::invalid_argument("Invalid TLS session id");
   }
 
   for (int i = 0; i < 6; ++i) {
@@ -58,38 +58,38 @@ SslClientHandshakePacket::SslClientHandshakePacket(std::vector<uint8_t> &data) {
   if (cipther_suites[0] != 0xC020 || cipther_suites[1] != 0xC01D ||
       cipther_suites[2] != 0xFF02 || cipther_suites[3] != 0xFF01 ||
       cipther_suites[4] != 0xFF04 || cipther_suites[5] != 0xFF03) {
-    throw std::invalid_argument("Invalid SSL cipher suites");
+    throw std::invalid_argument("Invalid TLS cipher suites");
   }
 
   compression_methods[0] = data[56];
   compression_methods[1] = data[57];
   if (compression_methods[0] != 1 || compression_methods[1] != 0) {
-    throw std::invalid_argument("Invalid SSL compression methods");
+    throw std::invalid_argument("Invalid TLS compression methods");
   }
 
   extensions_length = (data[58] << 8) | data[59];
   extension0_type = (data[60] << 8) | data[61];
   extension0_length = (data[62] << 8) | data[63];
   if (extension0_type != 0xADAE) {
-    throw std::invalid_argument("Invalid SSL extension type");
+    throw std::invalid_argument("Invalid TLS extension type");
   }
   if (extension0_length != 0) {
-    throw std::invalid_argument("Invalid SSL extension length");
+    throw std::invalid_argument("Invalid TLS extension length");
   }
 
   extension_srp_type = (data[64] << 8) | data[65];
   if (extension_srp_type != 0x000c) {
-    throw std::invalid_argument("Invalid SSL SRP extension type");
+    throw std::invalid_argument("Invalid TLS SRP extension type");
   }
 
   extension_srp_length = (data[66] << 8) | data[67];
   if (extension_srp_length + 68 != data.size()) {
-    throw std::invalid_argument("Invalid SSL SRP extension length");
+    throw std::invalid_argument("Invalid TLS SRP extension length");
   }
 
   extension_srp_data_length = data[68];
   if (extension_srp_data_length != extension_srp_length - 1) {
-    throw std::invalid_argument("Invalid SSL SRP extension data length");
+    throw std::invalid_argument("Invalid TLS SRP extension data length");
   }
 
   if (data.size() < 69 + extension_srp_data_length) {
@@ -103,15 +103,15 @@ SslClientHandshakePacket::SslClientHandshakePacket(std::vector<uint8_t> &data) {
   is_valid_ = true;
 }
 
-std::uint32_t SslClientHandshakePacket::get_packet_size() {
+std::uint32_t TlsClientHelloPacket::get_packet_size() {
   return 69 + extension_srp_data.size();
 }
 
-std::vector<uint8_t> SslClientHandshakePacket::serialize() {
+std::vector<uint8_t> TlsClientHelloPacket::serialize() {
   std::vector<uint8_t> packet;
   packet.push_back(type);
-  packet.push_back(ssl_version >> 8);
-  packet.push_back(ssl_version & 0xFF);
+  packet.push_back(tls_version >> 8);
+  packet.push_back(tls_version & 0xFF);
   packet.push_back(size >> 8);
   packet.push_back(size & 0xFF);
   packet.push_back(msg_type);
