@@ -38,7 +38,7 @@ StsConnectPacket::StsConnectPacket(
   xml_content_size = scan_xml_size;
 
   xml_content_ = std::string(scan_result->range().begin() + header_end_size,
-                             scan_result->range().end());
+                             scan_result->range().begin() + header_end_size + xml_content_size);
 
   if (xml_content_size != xml_content_.size()) {
     spdlog::error("XML content size does not match the expected size.");
@@ -65,6 +65,7 @@ StsConnectPacket::StsConnectPacket(
   }
 
   conn_type = connect_node.child("ConnType").text().as_uint();
+  client_address = connect_node.child("Address").text().as_string();
   product_type = connect_node.child("ProductType").text().as_uint();
   product_name = connect_node.child("ProductName").text().as_string();
   app_index = connect_node.child("AppIndex").text().as_uint();
@@ -85,17 +86,18 @@ std::uint32_t StsConnectPacket::get_packet_size() const noexcept {
 }
 
 std::vector<std::uint8_t> StsConnectPacket::serialize() noexcept {
-  xml_content_ = fmt::format("<Connect>"
-                             "<ConnType>{}</ConnType>"
-                             "<ProductType>{}</ProductType>"
-                             "<ProductName>{}</ProductName>"
-                             "<AppIndex>{}</AppIndex>"
-                             "<Epoch>{}</Epoch>"
-                             "<Program>{}</Program>"
-                             "<Build>{}</Build>"
-                             "<Process>{}</Process>"
+  xml_content_ = fmt::format("<Connect>\n"
+                             "<ConnType>{}</ConnType>\n"
+                             "<Address>{}</Address>\n"
+                             "<ProductType>{}</ProductType>\n"
+                             "<ProductName>{}</ProductName>\n"
+                             "<AppIndex>{}</AppIndex>\n"
+                             "<Epoch>{}</Epoch>\n"
+                             "<Program>{}</Program>\n"
+                             "<Build>{}</Build>\n"
+                             "<Process>{}</Process>\n"
                              "</Connect>\n",
-                             conn_type, product_type, product_name, app_index,
+                             conn_type, client_address, product_type, product_name, app_index,
                              epoch, program, build, process_id);
   xml_content_size = static_cast<uint32_t>(xml_content_.size());
 

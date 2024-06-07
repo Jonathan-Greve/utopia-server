@@ -25,6 +25,7 @@ public:
   std::uint32_t protocol_version_minor;
   std::uint32_t xml_content_size;
   std::uint32_t conn_type;
+  std::string client_address;
   std::uint32_t product_type;
   std::string product_name;
   std::uint32_t app_index;
