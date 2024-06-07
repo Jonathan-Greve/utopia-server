@@ -123,33 +123,46 @@ std::uint32_t TlsClientHelloPacket::get_packet_size() const noexcept {
 }
 
 std::vector<uint8_t> TlsClientHelloPacket::serialize() {
-  std::vector<uint8_t> packet;
-  packet.push_back(type);
-  utopia::common::be16_enc(packet.data() + 1, tls_version);
-  utopia::common::be16_enc(packet.data() + 3, size);
-  packet.push_back(msg_type);
-  packet.insert(packet.end(), msg_length.begin(), msg_length.end());
-  utopia::common::be16_enc(packet.data() + 9, client_version);
-  packet.insert(packet.end(), random.begin(), random.end());
-  packet.push_back(session_id);
-  utopia::common::be16_enc(packet.data() + 44, num_cipher_bytes);
+  // Preallocate the vector with the exact size needed
+  std::vector<uint8_t> packet(71 + extension_srp_data.size());
+
+  // Assign values directly using hardcoded indexes
+  packet.at(0) = type;
+  utopia::common::be16_enc(&packet.at(1), tls_version);
+  utopia::common::be16_enc(&packet.at(3), size);
+  packet.at(5) = msg_type;
+
+  std::copy(msg_length.begin(), msg_length.end(), packet.begin() + 6);
+
+  utopia::common::be16_enc(&packet.at(9), client_version);
+
+  std::copy(random.begin(), random.end(), packet.begin() + 11);
+
+  packet.at(43) = session_id;
+
+  utopia::common::be16_enc(&packet.at(44), num_cipher_bytes);
+
   for (int i = 0; i < 6; ++i) {
-    utopia::common::be16_enc(packet.data() + 46 + i * 2, cipher_suites[i]);
+    utopia::common::be16_enc(&packet.at(46 + i * 2), cipher_suites[i]);
   }
-  packet.push_back(compression_methods[0]);
-  packet.push_back(compression_methods[1]);
-  utopia::common::be16_enc(packet.data() + 60, extensions_length);
-  utopia::common::be16_enc(packet.data() + 62, extension0_type);
-  utopia::common::be16_enc(packet.data() + 64, extension0_length);
-  utopia::common::be16_enc(packet.data() + 66, extension_srp_type);
+
+  packet.at(58) = compression_methods[0];
+  packet.at(59) = compression_methods[1];
+
+  utopia::common::be16_enc(&packet.at(60), extensions_length);
+  utopia::common::be16_enc(&packet.at(62), extension0_type);
+  utopia::common::be16_enc(&packet.at(64), extension0_length);
+  utopia::common::be16_enc(&packet.at(66), extension_srp_type);
 
   extension_srp_length = extension_srp_data.size() + 1;
   extension_srp_data_length = extension_srp_data.size();
 
-  utopia::common::be16_enc(packet.data() + 68, extension_srp_length);
-  packet.push_back(extension_srp_data_length);
-  packet.insert(packet.end(), extension_srp_data.begin(),
-                extension_srp_data.end());
+  utopia::common::be16_enc(&packet.at(68), extension_srp_length);
+
+  packet.at(70) = extension_srp_data_length;
+
+  std::copy(extension_srp_data.begin(), extension_srp_data.end(),
+            packet.begin() + 71);
 
   return packet;
 }
