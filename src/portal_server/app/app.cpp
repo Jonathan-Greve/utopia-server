@@ -91,6 +91,16 @@ void App::run() noexcept {
 
     app_sm.process_event(AppEvents::Tick{});
 
+    // Remove all connections that are not connected
+    const auto &connections = connection_manager.get_all_connections();
+    for (auto *connection : connections) {
+      assert(connection != nullptr);
+      if (!connection->is_connected()) {
+        connection_manager.remove_connection(connection);
+        spdlog::debug("Removed a connection that was not connected.");
+      }
+    }
+
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 
