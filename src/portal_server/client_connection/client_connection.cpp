@@ -64,12 +64,7 @@ void ClientConnection::run() {
 }
 
 bool ClientConnection::dispatch_sts_packets(std::vector<std::uint8_t> &data) {
-  std::optional<StsConnectPacket> sts_connect_packet;
-  std::optional<StsConnectReplyPacket> sts_connect_reply_packet;
-
   if (dispatch_sts_packet<StsConnectPacket>(data))
-    return true;
-  if (dispatch_sts_packet<StsConnectReplyPacket>(data))
     return true;
   if (dispatch_sts_packet<StsPingPacket>(data))
     return true;
