@@ -12,6 +12,7 @@
 #include "utopia/portal_server/client_connection/packets/sts_start_tls_packet.hpp"
 
 #include <asio.hpp>
+#include <boost/sml.hpp>
 #include <spdlog/spdlog.h>
 
 #include <optional>
@@ -54,7 +55,7 @@ void ClientConnection::run() {
       continue;
     }
 
-    if (!dispatch_sts_packets(recv_buf)) {
+    if (!dispatch_sts_packets(recv_buf, client_connection_sm)) {
       // Log recv buf as ascii
       spdlog::debug("Received data ({} bytes) (ASCII):\n{}",
                     num_bytes_read.value(),
@@ -63,12 +64,15 @@ void ClientConnection::run() {
   }
 }
 
-bool ClientConnection::dispatch_sts_packets(std::vector<std::uint8_t> &data) {
-  if (dispatch_sts_packet<StsConnectPacket>(data))
+bool ClientConnection::dispatch_sts_packets(
+    std::vector<std::uint8_t> &data,
+    boost::sml::sm<ClientConnectionStateMachine,
+                   boost::sml::logger<ClientConnectionLogger>> &sm) {
+  if (dispatch_sts_packet<StsConnectPacket>(data, sm))
     return true;
-  if (dispatch_sts_packet<StsPingPacket>(data))
+  if (dispatch_sts_packet<StsPingPacket>(data, sm))
     return true;
-  if (dispatch_sts_packet<StsStartTlsPacket>(data))
+  if (dispatch_sts_packet<StsStartTlsPacket>(data, sm))
     return true;
 
   return false;

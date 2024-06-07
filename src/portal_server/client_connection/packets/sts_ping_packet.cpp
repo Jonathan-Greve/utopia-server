@@ -61,7 +61,8 @@ std::vector<std::uint8_t> StsPingPacket::serialize() noexcept {
 
   std::string packet_str =
       fmt::format(scan_str, protocol_version_major, protocol_version_minor,
-                  xml_content_size);
+                  xml_content_size) +
+      "\r\n\r\n";
 
   std::vector<std::uint8_t> packet(packet_str.begin(), packet_str.end());
 

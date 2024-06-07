@@ -55,6 +55,8 @@ struct ClientConnectionLogger {
     entry.dst_state = get_last_two_parts(sml::aux::get_type_name<TDstState>());
     entry.timestamp = std::chrono::system_clock::now();
 
+    spdlog::debug("State transition: {} -> {}", entry.src_state,
+                  entry.dst_state);
     context.state_log.push_back(entry);
   }
 

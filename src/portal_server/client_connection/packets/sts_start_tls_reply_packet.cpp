@@ -98,7 +98,7 @@ std::vector<std::uint8_t> StsStartTlsReplyPacket::serialize() noexcept {
   std::string packet_str =
       std::format(scan_str, protocol_version_major, protocol_version_minor,
                   conn_type, sequence_number, xml_content_size) +
-      xml_content_;
+      "\r\n\r\n" + xml_content_;
 
   std::vector<std::uint8_t> packet(packet_str.begin(), packet_str.end());
 

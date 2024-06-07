@@ -70,7 +70,8 @@ std::vector<std::uint8_t> StsStartTlsPacket::serialize() noexcept {
 
   std::string packet_str =
       fmt::format(scan_str, protocol_version_major, protocol_version_minor,
-                  sequence_number, timeout_ms, xml_content_size);
+                  sequence_number, timeout_ms, xml_content_size) +
+      "\r\n\r\n";
 
   std::vector<std::uint8_t> packet(packet_str.begin(), packet_str.end());
 

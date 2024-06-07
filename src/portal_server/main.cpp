@@ -32,7 +32,7 @@ parse_arguments(argparse::ArgumentParser &arg_parser, const int argc,
       .help("User login password")
       .default_value(std::string{"localhost"});
 
-  constexpr std::uint32_t default_game_version = 37392;
+  constexpr std::uint32_t default_game_version = 37400;
   arg_parser.add_argument("--key-path")
       .help("Relative path to the Diffie-Hellman key file")
       .default_value(

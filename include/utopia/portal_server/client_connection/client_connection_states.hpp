@@ -7,6 +7,8 @@ struct ClientConnectionStates {
   struct WaitingForClientConnectMsg {};
   struct ReceivedConnectPacket {};
   struct SentConnectReplyPacket {};
+  struct ReceivedStartTlsPacket {};
+  struct SentStartTlsReplyPacket {};
   struct Stopping {};
 };
 

@@ -15,7 +15,7 @@
 
 namespace utopia::portal::client_connection {
 
-constexpr std::string_view scan_str = "STS/{}.{} {} Success\r\ns:{}\r\nl:{}";
+constexpr std::string_view scan_str = "STS/{}.{} {} Success\r\ns:{}R\r\nl:{}";
 constexpr std::uint32_t header_end_size =
     4; // before xml_content_ we have "\r\n\r\n" that we wish to skip
 
@@ -98,7 +98,7 @@ std::vector<std::uint8_t> StsConnectReplyPacket::serialize() noexcept {
   std::string packet_str =
       std::format(scan_str, protocol_version_major, protocol_version_minor,
                   conn_type, sequence_number, xml_content_size) +
-      xml_content_;
+      "\r\n\r\n" + xml_content_;
 
   std::vector<std::uint8_t> packet(packet_str.begin(), packet_str.end());
 

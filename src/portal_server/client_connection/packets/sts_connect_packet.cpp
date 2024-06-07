@@ -102,7 +102,7 @@ std::vector<std::uint8_t> StsConnectPacket::serialize() noexcept {
   std::string packet_str =
       fmt::format(scan_str, protocol_version_major, protocol_version_minor,
                   xml_content_size) +
-      xml_content_;
+      "\r\n\r\n" + xml_content_;
 
   std::vector<std::uint8_t> packet(packet_str.begin(), packet_str.end());
 

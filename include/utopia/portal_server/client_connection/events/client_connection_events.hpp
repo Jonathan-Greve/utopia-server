@@ -7,6 +7,9 @@ struct ClientConnectionEvents {
 
   struct ReceivedValidConnectPacket {};
   struct SentConnectReplyPacket {};
+
+  struct ReceivedValidStartTlsPacket {};
+  struct SentStartTlsReplyPacket {};
 };
 
 } // namespace utopia::portal::client_connection
