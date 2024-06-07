@@ -26,6 +26,7 @@ private:
     PacketType packet(data);
     if (packet.is_valid()) {
       spdlog::debug("Packet size: {}", packet.get_packet_size());
+      const auto ser_packet = packet.serialize();
       sm.process_event(packet);
       data.erase(data.begin(), data.begin() + packet.get_packet_size());
       return true;
