@@ -30,10 +30,11 @@ StsPingPacket::StsPingPacket(const std::vector<std::uint8_t> &data) noexcept {
     return;
   }
 
-  auto &[major, minor, size] = scan_result->values();
-  protocol_version_major = major;
-  protocol_version_minor = minor;
-  xml_content_size = size;
+  auto &[scan_major, scan_minor, scan_xml_size] = scan_result->values();
+  protocol_version_major = scan_major;
+  protocol_version_minor = scan_minor;
+  xml_content_size = scan_xml_size;
+
   xml_content_ = std::string(scan_result->range().begin() + header_end_size,
                              scan_result->range().end());
 

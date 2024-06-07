@@ -24,7 +24,7 @@ public:
   std::uint32_t protocol_version_major;
   std::uint32_t protocol_version_minor;
   std::uint32_t conn_type;
-  std::uint32_t reply_sequence_number;
+  std::uint32_t sequence_number;
   std::uint32_t xml_content_size;
   std::uint32_t xml_content_server;
   std::uint32_t xml_content_module;

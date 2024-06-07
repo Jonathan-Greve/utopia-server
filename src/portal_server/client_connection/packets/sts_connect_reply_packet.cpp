@@ -15,9 +15,9 @@
 
 namespace utopia::portal::client_connection {
 
-constexpr std::string_view scan_str =
-    "STS/{}.{} {} Success\r\ns:{}\r\nl:{}";
-constexpr std::uint32_t header_end_size = 4; // before xml_content_ we have "\r\n\r\n" that we wish to skip
+constexpr std::string_view scan_str = "STS/{}.{} {} Success\r\ns:{}\r\nl:{}";
+constexpr std::uint32_t header_end_size =
+    4; // before xml_content_ we have "\r\n\r\n" that we wish to skip
 
 StsConnectReplyPacket::StsConnectReplyPacket(
     const std::vector<std::uint8_t> &data) noexcept {
@@ -33,14 +33,15 @@ StsConnectReplyPacket::StsConnectReplyPacket(
     return;
   }
 
-  auto &[major, minor, conn_type, sequence_number, size] =
-      scan_result->values();
+  auto &[scan_major, scan_minor, scan_conn_type, scan_sequence_number,
+         scan_xml_size] = scan_result->values();
 
-  protocol_version_major = major;
-  protocol_version_minor = minor;
-  conn_type = conn_type;
-  reply_sequence_number = sequence_number;
-  xml_content_size = size;
+  protocol_version_major = scan_major;
+  protocol_version_minor = scan_minor;
+  conn_type = scan_conn_type;
+  sequence_number = scan_sequence_number;
+  xml_content_size = scan_xml_size;
+
   xml_content_ = std::string(scan_result->range().begin() + header_end_size,
                              scan_result->range().end());
 
@@ -69,7 +70,7 @@ StsConnectReplyPacket::StsConnectReplyPacket(
   }
 
   conn_type = connect_reply_node.child("ConnType").text().as_uint();
-  reply_sequence_number =
+  sequence_number =
       connect_reply_node.child("ReplySequenceNumber").text().as_uint();
   xml_content_server = connect_reply_node.child("Server").text().as_uint();
   xml_content_module = connect_reply_node.child("Module").text().as_uint();
@@ -83,7 +84,7 @@ std::uint32_t StsConnectReplyPacket::get_packet_size() const noexcept {
   return get_format_string_length_ignoring_curly_brackets(scan_str) +
          count_digits(protocol_version_major) +
          count_digits(protocol_version_minor) + count_digits(conn_type) +
-         count_digits(reply_sequence_number) + count_digits(xml_content_size) +
+         count_digits(sequence_number) + count_digits(xml_content_size) +
          xml_content_size + header_end_size;
 }
 
@@ -96,7 +97,7 @@ std::vector<std::uint8_t> StsConnectReplyPacket::serialize() noexcept {
 
   std::string packet_str =
       std::format(scan_str, protocol_version_major, protocol_version_minor,
-                  conn_type, reply_sequence_number, xml_content_size) +
+                  conn_type, sequence_number, xml_content_size) +
       xml_content_;
 
   std::vector<std::uint8_t> packet(packet_str.begin(), packet_str.end());
