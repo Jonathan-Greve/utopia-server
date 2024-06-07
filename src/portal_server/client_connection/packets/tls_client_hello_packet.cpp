@@ -17,39 +17,46 @@ namespace utopia::portal::client_connection {
 TlsClientHelloPacket::TlsClientHelloPacket(std::vector<uint8_t> &data) {
   type = data[0];
   if (type != 0x16) {
-    throw std::invalid_argument("Invalid TLS packet type");
+    spdlog::trace("Invalid TLS packet type: {}", type);
+    return;
   }
 
   tls_version = utopia::common::be16_dec(data.data() + 1);
   if (tls_version != 0x0303) {
-    throw std::invalid_argument("Invalid TLS version");
+    spdlog::trace("Invalid TLS version: {}", tls_version);
+    return;
   }
 
   size = utopia::common::be16_dec(data.data() + 3);
   if (size != data.size() - 5) {
-    throw std::invalid_argument("Invalid TLS packet size");
+    spdlog::trace("Invalid TLS packet size: {}", size);
+    return;
   }
 
   msg_type = data[5];
   if (msg_type != 1) {
-    throw std::invalid_argument("Invalid TLS message type");
+    spdlog::trace("Invalid TLS message type: {}", msg_type);
+    return;
   }
 
   std::copy(data.begin() + 6, data.begin() + 9, msg_length.begin());
   client_version = utopia::common::be16_dec(data.data() + 9);
   if (client_version != 0x0303) {
-    throw std::invalid_argument("Invalid TLS client version");
+    spdlog::trace("Invalid TLS client version: {}", client_version);
+    return;
   }
 
   std::copy(data.begin() + 11, data.begin() + 43, random.begin());
   session_id = data[43];
   if (session_id != 0) {
-    throw std::invalid_argument("Invalid TLS session id");
+    spdlog::trace("Invalid TLS session id: {}", session_id);
+    return;
   }
 
   num_cipher_bytes = utopia::common::be16_dec(data.data() + 44);
   if (num_cipher_bytes != 12) {
-    throw std::invalid_argument("Invalid TLS cipher suites length");
+    spdlog::trace("Invalid TLS cipher suites length: {}", num_cipher_bytes);
+    return;
   }
 
   for (int i = 0; i < 6; ++i) {
@@ -58,43 +65,51 @@ TlsClientHelloPacket::TlsClientHelloPacket(std::vector<uint8_t> &data) {
   if (cipher_suites[0] != 0xC020 || cipher_suites[1] != 0xC01D ||
       cipher_suites[2] != 0xFF02 || cipher_suites[3] != 0xFF01 ||
       cipher_suites[4] != 0xFF04 || cipher_suites[5] != 0xFF03) {
-    throw std::invalid_argument("Invalid TLS cipher suites");
+    spdlog::trace("Invalid TLS cipher suites");
+    return;
   }
 
   compression_methods[0] = data[58];
   compression_methods[1] = data[59];
   if (compression_methods[0] != 1 || compression_methods[1] != 0) {
-    throw std::invalid_argument("Invalid TLS compression methods");
+    spdlog::trace("Invalid TLS compression methods");
+    return;
   }
 
   extensions_length = utopia::common::be16_dec(data.data() + 60);
   extension0_type = utopia::common::be16_dec(data.data() + 62);
   extension0_length = utopia::common::be16_dec(data.data() + 64);
   if (extension0_type != 0xADAE) {
-    throw std::invalid_argument("Invalid TLS extension type");
+    spdlog::trace("Invalid TLS extension type: {}", extension0_type);
+    return;
   }
   if (extension0_length != 0) {
-    throw std::invalid_argument("Invalid TLS extension length");
+    spdlog::trace("Invalid TLS extension length: {}", extension0_length);
+    return;
   }
 
   extension_srp_type = utopia::common::be16_dec(data.data() + 66);
   if (extension_srp_type != 0x000c) {
-    throw std::invalid_argument("Invalid TLS SRP extension type");
+    spdlog::trace("Invalid TLS SRP extension type: {}", extension_srp_type);
+    return;
   }
 
   extension_srp_length = utopia::common::be16_dec(data.data() + 68);
   if (extension_srp_length + 70 != data.size()) {
-    throw std::invalid_argument("Invalid TLS SRP extension length");
+    spdlog::trace("Invalid TLS SRP extension length: {}", extension_srp_length);
+    return;
   }
 
   extension_srp_data_length = data[70];
   if (extension_srp_data_length != extension_srp_length - 1) {
-    throw std::invalid_argument("Invalid TLS SRP extension data length");
+    spdlog::trace("Invalid TLS SRP extension data length: {}",
+                  extension_srp_data_length);
   }
 
   if (data.size() < 71 + extension_srp_data_length) {
-    throw std::invalid_argument(
+    spdlog::trace(
         "Data size is too small for the specified SRP extension data length");
+    return;
   }
 
   extension_srp_data.assign(data.begin() + 71,
