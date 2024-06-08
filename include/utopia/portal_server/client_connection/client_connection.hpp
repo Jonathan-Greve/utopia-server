@@ -27,6 +27,13 @@ private:
     if (packet.is_valid()) {
       spdlog::debug("Packet size: {}", packet.get_packet_size());
       const auto ser_packet = packet.serialize();
+
+      // Compare each byte in data and ser_packet
+      if (!std::equal(data.begin(), data.begin() + packet.get_packet_size(),
+                      ser_packet.begin())) {
+        spdlog::error("Data and serialized packet do not match!");
+      }
+
       sm.process_event(packet);
       data.erase(data.begin(), data.begin() + packet.get_packet_size());
       return true;
