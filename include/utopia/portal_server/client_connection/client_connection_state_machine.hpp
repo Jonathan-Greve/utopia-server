@@ -5,9 +5,9 @@
 #include "utopia/portal_server/client_connection/actions/send_sts_connect_reply_packet.hpp"
 #include "utopia/portal_server/client_connection/actions/send_sts_start_tls_reply_packet.hpp"
 #include "utopia/portal_server/client_connection/client_connection_states.hpp"
-#include "utopia/portal_server/client_connection/packets/sts_connect_packet.hpp"
-#include "utopia/portal_server/client_connection/packets/sts_ping_packet.hpp"
-#include "utopia/portal_server/client_connection/packets/sts_start_tls_packet.hpp"
+#include "utopia/portal_server/client_connection/packets/sts/sts_connect_packet.hpp"
+#include "utopia/portal_server/client_connection/packets/sts/sts_ping_packet.hpp"
+#include "utopia/portal_server/client_connection/packets/sts/sts_start_tls_packet.hpp"
 
 #include <boost/sml.hpp>
 #include <spdlog/spdlog.h>

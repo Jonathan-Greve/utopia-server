@@ -1,6 +1,6 @@
 #include "utopia/utopia_pch.hpp"
 
-#include "utopia/portal_server/client_connection/packets/sts_start_tls_reply_packet.hpp"
+#include "utopia/portal_server/client_connection/packets/sts/sts_start_tls_reply_packet.hpp"
 
 #include "utopia/common/integers/count_digits.hpp"
 #include "utopia/common/strings/get_format_string_length_ignoring_curly_brackets.hpp"

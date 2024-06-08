@@ -1,7 +1,7 @@
 #pragma once
 
 #include "utopia/portal_server/client_connection/events/client_connection_events.hpp"
-#include "utopia/portal_server/client_connection/packets/sts_connect_packet.hpp"
+#include "utopia/portal_server/client_connection/packets/sts/sts_connect_packet.hpp"
 
 #include <variant>
 

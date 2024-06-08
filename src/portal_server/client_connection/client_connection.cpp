@@ -7,9 +7,9 @@
 #include "utopia/portal_server/client_connection/client_connection_logger.hpp"
 #include "utopia/portal_server/client_connection/client_connection_state_machine.hpp"
 #include "utopia/portal_server/client_connection/events/client_connection_event.hpp"
-#include "utopia/portal_server/client_connection/packets/sts_connect_packet.hpp"
-#include "utopia/portal_server/client_connection/packets/sts_ping_packet.hpp"
-#include "utopia/portal_server/client_connection/packets/sts_start_tls_packet.hpp"
+#include "utopia/portal_server/client_connection/packets/sts/sts_connect_packet.hpp"
+#include "utopia/portal_server/client_connection/packets/sts/sts_ping_packet.hpp"
+#include "utopia/portal_server/client_connection/packets/sts/sts_start_tls_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_client_hello_packet.hpp"
 
 #include <asio.hpp>

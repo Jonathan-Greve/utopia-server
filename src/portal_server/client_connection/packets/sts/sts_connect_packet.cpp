@@ -1,6 +1,6 @@
 #include "utopia/utopia_pch.hpp"
 
-#include "utopia/portal_server/client_connection/packets/sts_connect_packet.hpp"
+#include "utopia/portal_server/client_connection/packets/sts/sts_connect_packet.hpp"
 
 #include "utopia/common/integers/count_digits.hpp"
 #include "utopia/common/strings/get_format_string_length_ignoring_curly_brackets.hpp"
@@ -38,7 +38,8 @@ StsConnectPacket::StsConnectPacket(
   xml_content_size = scan_xml_size;
 
   xml_content_ = std::string(scan_result->range().begin() + header_end_size,
-                             scan_result->range().begin() + header_end_size + xml_content_size);
+                             scan_result->range().begin() + header_end_size +
+                                 xml_content_size);
 
   if (xml_content_size != xml_content_.size()) {
     spdlog::error("XML content size does not match the expected size.");
@@ -86,19 +87,20 @@ std::uint32_t StsConnectPacket::get_packet_size() const noexcept {
 }
 
 std::vector<std::uint8_t> StsConnectPacket::serialize() noexcept {
-  xml_content_ = fmt::format("<Connect>\n"
-                             "<ConnType>{}</ConnType>\n"
-                             "<Address>{}</Address>\n"
-                             "<ProductType>{}</ProductType>\n"
-                             "<ProductName>{}</ProductName>\n"
-                             "<AppIndex>{}</AppIndex>\n"
-                             "<Epoch>{}</Epoch>\n"
-                             "<Program>{}</Program>\n"
-                             "<Build>{}</Build>\n"
-                             "<Process>{}</Process>\n"
-                             "</Connect>\n",
-                             conn_type, client_address, product_type, product_name, app_index,
-                             epoch, program, build, process_id);
+  xml_content_ =
+      fmt::format("<Connect>\n"
+                  "<ConnType>{}</ConnType>\n"
+                  "<Address>{}</Address>\n"
+                  "<ProductType>{}</ProductType>\n"
+                  "<ProductName>{}</ProductName>\n"
+                  "<AppIndex>{}</AppIndex>\n"
+                  "<Epoch>{}</Epoch>\n"
+                  "<Program>{}</Program>\n"
+                  "<Build>{}</Build>\n"
+                  "<Process>{}</Process>\n"
+                  "</Connect>\n",
+                  conn_type, client_address, product_type, product_name,
+                  app_index, epoch, program, build, process_id);
   xml_content_size = static_cast<uint32_t>(xml_content_.size());
 
   std::string packet_str =

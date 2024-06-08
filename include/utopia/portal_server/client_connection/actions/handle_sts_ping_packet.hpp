@@ -1,7 +1,7 @@
 #pragma once
 
 #include "utopia/portal_server/client_connection/events/client_connection_event.hpp"
-#include "utopia/portal_server/client_connection/packets/sts_ping_packet.hpp"
+#include "utopia/portal_server/client_connection/packets/sts/sts_ping_packet.hpp"
 
 #include <asio.hpp>
 #include <concurrentqueue.h>
