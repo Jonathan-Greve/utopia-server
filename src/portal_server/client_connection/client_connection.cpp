@@ -56,11 +56,11 @@ void ClientConnection::run() {
       continue;
     }
 
+    spdlog::debug("Received data ({} bytes) (ASCII):\n{}",
+                  num_bytes_read.value(),
+                  std::string(recv_buf.begin(), recv_buf.end()));
     if (!dispatch_sts_packets(recv_buf, client_connection_sm)) {
       // Log recv buf as ascii
-      spdlog::debug("Received data ({} bytes) (ASCII):\n{}",
-                    num_bytes_read.value(),
-                    std::string(recv_buf.begin(), recv_buf.end()));
     }
   }
 }
