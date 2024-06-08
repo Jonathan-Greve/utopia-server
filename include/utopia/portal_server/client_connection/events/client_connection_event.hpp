@@ -11,7 +11,6 @@ using ClientConnectionEvent =
     std::variant<ClientConnectionEvents::UnableToSendPacket,
 
                  ClientConnectionEvents::ReceivedValidConnectPacket,
-                 ClientConnectionEvents::SentConnectReplyPacket,
 
                  ClientConnectionEvents::ReceivedValidStartTlsPacket,
                  ClientConnectionEvents::SentStartTlsReplyPacket>;

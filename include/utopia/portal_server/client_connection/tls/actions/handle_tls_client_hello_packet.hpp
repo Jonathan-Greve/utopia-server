@@ -3,6 +3,7 @@
 #include "utopia/portal_server/client_connection/events/client_connection_event.hpp"
 #include "utopia/portal_server/client_connection/events/client_connection_events.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_client_hello_packet.hpp"
+#include "utopia/portal_server/client_connection/tls/tls_context.hpp"
 
 #include <asio.hpp>
 #include <concurrentqueue.h>
@@ -13,7 +14,11 @@ namespace utopia::portal::client_connection {
 inline const auto handle_tls_client_hello_packet =
     [](asio::io_context &io,
        moodycamel::ConcurrentQueue<ClientConnectionEvent> *event_queue,
-       TlsClientHelloPacket event) {
+       TlsClientHelloPacket event, TlsContext &context) {
+      mbedtls_sha256_update_ret(
+          &context.checksum, reinterpret_cast<std::uint8_t *>(&event.msg_type),
+          event.size);
+
       spdlog::trace("Handling Tls Client Hello packet.");
     };
 

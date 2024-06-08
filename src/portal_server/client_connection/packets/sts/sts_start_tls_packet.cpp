@@ -44,7 +44,8 @@ StsStartTlsPacket::StsStartTlsPacket(
   xml_content_size = scan_xml_size;
 
   xml_content_ = std::string(scan_result->range().begin() + header_end_size,
-                             scan_result->range().end());
+                             scan_result->range().begin() + header_end_size +
+                                 xml_content_size);
 
   if (xml_content_size != xml_content_.size()) {
     spdlog::error("XML content size does not match the expected size.");

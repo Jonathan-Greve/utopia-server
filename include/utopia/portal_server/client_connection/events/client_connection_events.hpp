@@ -6,7 +6,6 @@ struct ClientConnectionEvents {
   struct UnableToSendPacket {};
 
   struct ReceivedValidConnectPacket {};
-  struct SentConnectReplyPacket {};
 
   struct ReceivedValidStartTlsPacket {};
   struct SentStartTlsReplyPacket {};
