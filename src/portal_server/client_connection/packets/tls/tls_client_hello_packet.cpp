@@ -126,6 +126,16 @@ std::vector<uint8_t> TlsClientHelloPacket::serialize() {
   // Preallocate the vector with the exact size needed
   std::vector<uint8_t> packet(71 + extension_srp_data.size());
 
+  // Update data members that are not hardcoded
+  extension_srp_length = extension_srp_data.size() + 1;
+  extension_srp_data_length = extension_srp_data.size();
+  extensions_length = extension_srp_data_length + 9;
+  size = packet.size() - 5;
+
+  // The msg_length will never need 24 bytes. So we can just use be16_enc on the
+  // last 2 bytes.
+  utopia::common::be16_enc(&msg_length[1], size - 4);
+
   // Assign values directly using hardcoded indexes
   packet.at(0) = type;
   utopia::common::be16_enc(&packet.at(1), tls_version);
@@ -153,9 +163,6 @@ std::vector<uint8_t> TlsClientHelloPacket::serialize() {
   utopia::common::be16_enc(&packet.at(62), extension0_type);
   utopia::common::be16_enc(&packet.at(64), extension0_length);
   utopia::common::be16_enc(&packet.at(66), extension_srp_type);
-
-  extension_srp_length = extension_srp_data.size() + 1;
-  extension_srp_data_length = extension_srp_data.size();
 
   utopia::common::be16_enc(&packet.at(68), extension_srp_length);
 
