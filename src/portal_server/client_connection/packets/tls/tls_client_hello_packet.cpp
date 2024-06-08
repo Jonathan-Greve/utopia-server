@@ -119,7 +119,7 @@ TlsClientHelloPacket::TlsClientHelloPacket(std::vector<uint8_t> &data) {
 }
 
 std::uint32_t TlsClientHelloPacket::get_packet_size() const noexcept {
-  return 71 + extension_srp_data.size();
+  return 71 + static_cast<std::uint32_t>(extension_srp_data.size());
 }
 
 std::vector<uint8_t> TlsClientHelloPacket::serialize() {
@@ -127,10 +127,12 @@ std::vector<uint8_t> TlsClientHelloPacket::serialize() {
   std::vector<uint8_t> packet(71 + extension_srp_data.size());
 
   // Update data members that are not hardcoded
-  extension_srp_length = extension_srp_data.size() + 1;
-  extension_srp_data_length = extension_srp_data.size();
+  extension_srp_length =
+      static_cast<std::uint32_t>(extension_srp_data.size()) + 1;
+  extension_srp_data_length =
+      static_cast<std::uint32_t>(extension_srp_data.size());
   extensions_length = extension_srp_data_length + 9;
-  size = packet.size() - 5;
+  size = static_cast<std::uint32_t>(packet.size()) - 5;
 
   // The msg_length will never need 24 bytes. So we can just use be16_enc on the
   // last 2 bytes.
