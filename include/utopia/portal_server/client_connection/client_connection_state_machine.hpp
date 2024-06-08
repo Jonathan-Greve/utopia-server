@@ -8,6 +8,7 @@
 #include "utopia/portal_server/client_connection/packets/sts/sts_connect_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/sts/sts_ping_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/sts/sts_start_tls_packet.hpp"
+#include "utopia/portal_server/client_connection/tls/tls_state_machine.hpp"
 
 #include <boost/sml.hpp>
 #include <spdlog/spdlog.h>
@@ -34,7 +35,7 @@ struct ClientConnectionStateMachine {
       , state<ClientConnectionStates::SentConnectReplyPacket> + event<ClientConnectionEvents::ReceivedValidStartTlsPacket> = state<ClientConnectionStates::ReceivedStartTlsPacket>
 
       , state<ClientConnectionStates::ReceivedStartTlsPacket> + on_entry<_> / send_sts_start_tls_reply_packet
-      , state<ClientConnectionStates::ReceivedStartTlsPacket> + event<ClientConnectionEvents::SentStartTlsReplyPacket> = state<ClientConnectionStates::SentStartTlsReplyPacket>
+      , state<ClientConnectionStates::ReceivedStartTlsPacket> + event<ClientConnectionEvents::SentStartTlsReplyPacket> = state<TlsStateMachine>
       
       , state<ClientConnectionStates::Stopping> = X
 

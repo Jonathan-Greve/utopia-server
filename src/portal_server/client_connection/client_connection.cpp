@@ -11,6 +11,7 @@
 #include "utopia/portal_server/client_connection/packets/sts/sts_ping_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/sts/sts_start_tls_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_client_hello_packet.hpp"
+#include "utopia/portal_server/client_connection/tls/tls_context.hpp"
 
 #include <asio.hpp>
 #include <boost/sml.hpp>
@@ -34,12 +35,17 @@ void ClientConnection::run() {
       std::make_unique<moodycamel::ConcurrentQueue<ClientConnectionEvent>>();
 
   ClientConnectionContext client_connection_sm_context{};
+  TlsContext tls_context{};
 
   ClientConnectionLogger client_connection_logger{client_connection_sm_context};
 
   sm<ClientConnectionStateMachine, logger<ClientConnectionLogger>>
-      client_connection_sm{*this, io_context_, client_connection_sm_context,
-                           client_connection_logger, event_queue.get()};
+      client_connection_sm{*this,
+                           io_context_,
+                           client_connection_sm_context,
+                           tls_context,
+                           client_connection_logger,
+                           event_queue.get()};
 
   std::vector<std::uint8_t> recv_buf;
 

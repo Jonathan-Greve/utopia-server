@@ -2,9 +2,9 @@
 
 namespace utopia::portal::client_connection {
 
-struct TlsStates {
-  struct WaitingOnClientHello {};
-  struct ReceivedClientHello {};
+struct TlsEvents {
+  struct UnableToSendPacket {};
+
   struct SentServerHelloReply {};
 };
 
