@@ -26,6 +26,10 @@ inline const auto send_tls_server_hello =
         return;
       }
 
+      const auto data = tls_server_hello_packet.serialize();
+      mbedtls_sha256_update_ret(&context.checksum, &data.at(5),
+                                tls_server_hello_packet.size);
+
       spdlog::debug("Sent STS Connect Reply packet.");
       event_queue->enqueue(
           ClientConnectionEvent{TlsEvents::SentServerHelloReply{}});
