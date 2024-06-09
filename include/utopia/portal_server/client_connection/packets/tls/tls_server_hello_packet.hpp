@@ -25,7 +25,7 @@ public:
 
   std::uint8_t type = 0x16;                        // byte 0
   std::uint16_t tls_version = 0x0303;              // bytes 1-2
-  std::uint16_t size = 0;                          // bytes 3-4
+  std::uint16_t size = 53;                         // bytes 3-4
   std::uint8_t msg_type = 2;                       // byte 5
   std::array<std::uint8_t, 3> msg_length{0, 0, 0}; // bytes 6-8
   std::uint16_t server_version = 0x0303;           // bytes 9-10
@@ -34,7 +34,7 @@ public:
   std::uint16_t cipher_suite = 0xFF04;             // byte 44-45
 
   std::uint8_t compression_method = 0;    // byte 46
-  std::uint16_t extensions_length = 0;    // byte 47-48
+  std::uint16_t extensions_length = 4;    // byte 47-48
   std::uint16_t extension0_type = 0xADAE; // byte 49-50
   std::uint16_t extension0_length = 0;    // byte 51-52
 

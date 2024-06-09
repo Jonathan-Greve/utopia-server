@@ -93,6 +93,12 @@ std::vector<uint8_t> TlsServerHelloPacket::serialize() {
   // Preallocate the vector with the exact size needed
   std::vector<uint8_t> packet(53);
 
+  size = static_cast<std::uint32_t>(packet.size()) - 5;
+
+  // The msg_length will never need 24 bytes. So we can just use be16_enc on the
+  // last 2 bytes.
+  utopia::common::be16_enc(&msg_length[1], size - 4);
+
   // Assign values directly using hardcoded indexes
   packet.at(0) = type;
   utopia::common::be16_enc(&packet.at(1), tls_version);
