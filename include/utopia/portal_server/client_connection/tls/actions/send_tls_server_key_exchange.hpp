@@ -21,7 +21,7 @@ inline const auto send_tls_server_key_exchange =
       tls_server_hello_packet.prime = context.server_key.prime;
       tls_server_hello_packet.generator = context.server_key.generator;
       tls_server_hello_packet.salt = context.server_key.salt;
-      tls_server_hello_packet.server_public = context.server_key.public_key;
+      tls_server_hello_packet.server_public = context.server_key.server_public;
 
       if (!client_connection.send(tls_server_hello_packet.serialize())) {
         spdlog::error("Failed to send STS Connect Reply packet.");
