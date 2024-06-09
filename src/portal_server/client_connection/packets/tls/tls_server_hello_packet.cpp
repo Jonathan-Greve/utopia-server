@@ -39,7 +39,7 @@ TlsServerHelloPacket::TlsServerHelloPacket(std::vector<uint8_t> &data) {
   }
 
   msg_type = data[5];
-  if (msg_type != 1) {
+  if (msg_type != 2) {
     spdlog::trace("Invalid TLS message type: {}", msg_type);
     return;
   }
