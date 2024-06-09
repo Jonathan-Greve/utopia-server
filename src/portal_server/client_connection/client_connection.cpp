@@ -62,7 +62,14 @@ void ClientConnection::run() {
       continue;
     }
 
-    if (!dispatch_sts_packets(recv_buf, client_connection_sm)) {
+    while (!recv_buf.empty() && dispatch_sts_packets(recv_buf, client_connection_sm)) {
+      while (event_queue->try_dequeue(event)) {
+        std::visit([&](auto &&x) { client_connection_sm.process_event(x); },
+                   event);
+      }
+    }
+
+    if (!recv_buf.empty()) {
       // Log recv buf as ascii
       spdlog::debug("Received data ({} bytes) (ASCII):\n{}",
                     num_bytes_read.value(),
