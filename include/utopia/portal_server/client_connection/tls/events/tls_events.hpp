@@ -8,6 +8,8 @@ struct TlsEvents {
   struct SentServerHelloReply {};
 
   struct SentServerKeyExchangePacket {};
+
+  struct SentServerHelloDonePacket {};
 };
 
 } // namespace utopia::portal::client_connection

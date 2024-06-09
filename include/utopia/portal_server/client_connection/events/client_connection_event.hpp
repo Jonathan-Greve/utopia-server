@@ -15,5 +15,6 @@ using ClientConnectionEvent =
                  ClientConnectionEvents::SentStartTlsReplyPacket,
 
                  TlsEvents::UnableToSendPacket, TlsEvents::SentServerHelloReply,
-                 TlsEvents::SentServerKeyExchangePacket>;
+                 TlsEvents::SentServerKeyExchangePacket,
+                 TlsEvents::SentServerHelloDonePacket>;
 } // namespace utopia::portal::client_connection
