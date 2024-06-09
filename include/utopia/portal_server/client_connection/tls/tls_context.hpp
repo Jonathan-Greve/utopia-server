@@ -1,6 +1,7 @@
 #pragma once
 
 #include "utopia/common/sml/logging/state_transition_log_entry.hpp"
+#include "utopia/portal_server/client_connection/tls/server_key.hpp"
 
 #include <boost/circular_buffer.hpp>
 #include <mbedtls/sha256.h>
@@ -8,13 +9,6 @@
 #include <cstdint>
 
 namespace utopia::portal::client_connection {
-
-struct ServerKey {
-  std::uint8_t prime[128];
-  std::uint8_t generator[1];
-  std::uint8_t salt[8];
-  std::uint8_t server_public[128];
-};
 
 struct TlsContext {
   TlsContext() {
