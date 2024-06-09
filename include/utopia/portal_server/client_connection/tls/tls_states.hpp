@@ -7,6 +7,7 @@ struct TlsStates {
   struct ReceivedClientHello {};
   struct SentServerHelloReply {};
   struct SentServerKeyExchange {};
+  struct SentServerHelloDone {};
 };
 
 } // namespace utopia::portal::client_connection
