@@ -41,7 +41,7 @@ TlsServerKeyExchangePacket::TlsServerKeyExchangePacket(
   }
 
   msg_type = data[5];
-  if (msg_type != 1) {
+  if (msg_type != 12) {
     spdlog::trace("Invalid TLS message type: {}", msg_type);
     return;
   }
