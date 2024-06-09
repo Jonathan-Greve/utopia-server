@@ -2,6 +2,7 @@
 #include "utopia/portal_server/client_connection/packets/tls/tls_client_hello_packet.hpp"
 #include "utopia/portal_server/client_connection/tls/actions/handle_tls_client_hello_packet.hpp"
 #include "utopia/portal_server/client_connection/tls/actions/send_tls_server_hello.hpp"
+#include "utopia/portal_server/client_connection/tls/actions/send_tls_server_hello_done.hpp"
 #include "utopia/portal_server/client_connection/tls/actions/send_tls_server_key_exchange.hpp"
 #include "utopia/portal_server/client_connection/tls/tls_states.hpp"
 
@@ -28,6 +29,10 @@ struct TlsStateMachine {
       , state<TlsStates::SentServerHelloReply> + on_entry<_> / send_tls_server_key_exchange
       , state<TlsStates::SentServerHelloReply> + event<TlsEvents::SentServerKeyExchangePacket> = state<TlsStates::SentServerKeyExchange>
       , state<TlsStates::SentServerHelloReply> + event<TlsEvents::UnableToSendPacket> = X
+
+      , state<TlsStates::SentServerKeyExchange> + on_entry<_> / send_tls_server_hello_done
+      , state<TlsStates::SentServerKeyExchange> + event<TlsEvents::SentServerHelloDonePacket> = state<TlsStates::SentServerHelloDone>
+      , state<TlsStates::SentServerKeyExchange> + event<TlsEvents::UnableToSendPacket> = X
     );
     // clang-format on
   }
