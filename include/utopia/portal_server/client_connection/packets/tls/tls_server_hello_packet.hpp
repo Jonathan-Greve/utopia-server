@@ -26,23 +26,17 @@ public:
   std::uint8_t type = 0x16;                        // byte 0
   std::uint16_t tls_version = 0x0303;              // bytes 1-2
   std::uint16_t size = 0;                          // bytes 3-4
-  std::uint8_t msg_type = 1;                       // byte 5
+  std::uint8_t msg_type = 2;                       // byte 5
   std::array<std::uint8_t, 3> msg_length{0, 0, 0}; // bytes 6-8
-  std::uint16_t client_version = 0x0303;           // bytes 9-10
+  std::uint16_t server_version = 0x0303;           // bytes 9-10
   std::array<std::uint8_t, 32> random;             // bytes 11-42
   std::uint8_t session_id = 0;                     // byte 43
-  std::uint16_t num_cipher_bytes;                  // byte 44-45
-  std::array<std::uint16_t, 6> cipher_suites{0xC020, 0xC01D,
-                                             0xFF02, 0xFF01, // bytes 46-57
-                                             0xFF04, 0xFF03};
-  std::array<std::uint8_t, 2> compression_methods{1, 0}; // bytes 58-59
-  std::uint16_t extensions_length = 0;                   // bytes 60-61
-  std::uint16_t extension0_type = 0xADAE;                // bytes 62-63
-  std::uint16_t extension0_length = 0;                   // bytes 64-65
-  std::uint16_t extension_srp_type = 0x000c;             // bytes 66-67
-  std::uint16_t extension_srp_length = 0;                // byte 68-69
-  std::uint8_t extension_srp_data_length = 0;            // byte 70
-  std::vector<std::uint8_t> extension_srp_data;          // bytes 71-end
+  std::uint16_t cipher_suite = 0xFF04;             // byte 44-45
+
+  std::uint8_t compression_method = 0;    // byte 46
+  std::uint16_t extensions_length = 0;    // byte 47-48
+  std::uint16_t extension0_type = 0xADAE; // byte 49-50
+  std::uint16_t extension0_length = 0;    // byte 51-52
 
 private:
   bool is_valid_ = false;
