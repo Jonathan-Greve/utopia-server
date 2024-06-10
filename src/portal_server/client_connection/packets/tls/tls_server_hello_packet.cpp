@@ -15,7 +15,7 @@
 namespace utopia::portal::client_connection {
 
 TlsServerHelloPacket::TlsServerHelloPacket(std::vector<uint8_t> &data) {
-  if (data.size() != 53) {
+  if (data.size() < 53) {
     spdlog::trace("Invalid TLS packet size: {}", data.size());
     return;
   }
@@ -33,7 +33,7 @@ TlsServerHelloPacket::TlsServerHelloPacket(std::vector<uint8_t> &data) {
   }
 
   size = utopia::common::be16_dec(data.data() + 3);
-  if (size != data.size() - 5) {
+  if (size != get_packet_size() - 5) {
     spdlog::trace("Invalid TLS packet size: {}", size);
     return;
   }

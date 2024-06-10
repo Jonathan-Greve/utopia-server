@@ -10,6 +10,7 @@
 #include "utopia/portal_server/client_connection/packets/sts/sts_connect_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/sts/sts_ping_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/sts/sts_start_tls_packet.hpp"
+#include "utopia/portal_server/client_connection/packets/tls/tls_change_cipher_spec_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_client_hello_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_client_key_exchange_packet.hpp"
 #include "utopia/portal_server/client_connection/tls/tls_context.hpp"
@@ -112,6 +113,8 @@ bool ClientConnection::dispatch_sts_packets(
   if (dispatch_sts_packet<TlsClientHelloPacket>(data, sm))
     return true;
   if (dispatch_sts_packet<TlsClientKeyExchangePacket>(data, sm))
+    return true;
+  if (dispatch_sts_packet<TlsChangeCipherSpecPacket>(data, sm))
     return true;
 
   return false;

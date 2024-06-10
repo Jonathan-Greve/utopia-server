@@ -28,7 +28,7 @@ TlsClientHelloPacket::TlsClientHelloPacket(std::vector<uint8_t> &data) {
   }
 
   size = utopia::common::be16_dec(data.data() + 3);
-  if (size != data.size() - 5) {
+  if (size > data.size() - 5) {
     spdlog::trace("Invalid TLS packet size: {}", size);
     return;
   }
