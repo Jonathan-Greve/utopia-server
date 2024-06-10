@@ -61,7 +61,7 @@ public:
             reinterpret_cast<const unsigned char *>(personalization),
             strlen(personalization)) != 0) {
       spdlog::error("Failed to initialize random number generator");
-      throw std::runtime_error("Random number generator initialization failed");
+      return;
     }
 
     // Load prime and generator into mbedtls_mpi structures
@@ -72,7 +72,7 @@ public:
     if (mbedtls_mpi_fill_random(&x, 32, mbedtls_ctr_drbg_random, &ctr_drbg) !=
         0) {
       spdlog::error("Failed to generate private key");
-      throw std::runtime_error("Private key generation failed");
+      return;
     }
 
     // Store the private key x in the private member
@@ -83,7 +83,7 @@ public:
     // Compute server public key y = g^x mod p
     if (mbedtls_mpi_exp_mod(&y, &g, &x, &p, NULL) != 0) {
       spdlog::error("Failed to compute server public key");
-      throw std::runtime_error("Public key computation failed");
+      return;
     }
 
     // Export the server public key to binary
