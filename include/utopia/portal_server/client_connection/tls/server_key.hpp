@@ -41,6 +41,7 @@ public:
 
     prime = hardcoded_prime;
     salt = hardcoded_salt;
+    generator[0] = 2;
 
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
