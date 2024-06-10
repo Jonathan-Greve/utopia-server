@@ -62,7 +62,8 @@ void ClientConnection::run() {
       continue;
     }
 
-    while (!recv_buf.empty() && dispatch_sts_packets(recv_buf, client_connection_sm)) {
+    while (!recv_buf.empty() &&
+           dispatch_sts_packets(recv_buf, client_connection_sm)) {
       while (event_queue->try_dequeue(event)) {
         std::visit([&](auto &&x) { client_connection_sm.process_event(x); },
                    event);
@@ -88,7 +89,6 @@ bool ClientConnection::dispatch_sts_packets(
     return true;
   if (dispatch_sts_packet<StsStartTlsPacket>(data, sm))
     return true;
-
   if (dispatch_sts_packet<TlsClientHelloPacket>(data, sm))
     return true;
 
