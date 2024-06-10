@@ -35,7 +35,8 @@ public:
         0x97, 0x6e, 0xaa, 0x9a, 0xfd, 0x51, 0x38, 0xfe, 0x83, 0x76, 0x43, 0x5b,
         0x9f, 0xc6, 0x1d, 0x2f, 0xc0, 0xeb, 0x06, 0xe3};
 
-    // The salt can be anything but the server uses this as of GW version 37400
+    // The salt can be anything but the server uses this as of GW version 37400.
+    // It probably sends a different salt for each user (Not verified).
     constexpr std::array<uint8_t, 8> hardcoded_salt = {0x62, 0x53, 0xf6, 0xf2,
                                                        0x34, 0x00, 0x09, 0x20};
 
