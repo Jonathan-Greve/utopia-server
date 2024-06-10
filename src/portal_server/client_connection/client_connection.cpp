@@ -17,7 +17,31 @@
 #include <boost/sml.hpp>
 #include <spdlog/spdlog.h>
 
+#include <iomanip>
 #include <optional>
+#include <sstream>
+
+void log_received_data(const std::vector<std::uint8_t> &recv_buf,
+                       std::optional<size_t> num_bytes_read) {
+  if (!recv_buf.empty()) {
+    // Convert recv_buf to a hex string
+    std::ostringstream hex_stream;
+    for (const auto &byte : recv_buf) {
+      hex_stream << std::hex << std::setw(2) << std::setfill('0')
+                 << (static_cast<int>(byte) & 0xff) << " ";
+    }
+    std::string hex_str = hex_stream.str();
+
+    // Log recv_buf as ASCII
+    spdlog::debug("Received data ({} bytes) (ASCII):\n{}",
+                  num_bytes_read.value(),
+                  std::string(recv_buf.begin(), recv_buf.end()));
+
+    // Log recv_buf as hex
+    spdlog::debug("Received data ({} bytes) (Hex):\n{}", num_bytes_read.value(),
+                  hex_str);
+  }
+}
 
 namespace utopia::portal::client_connection {
 
@@ -70,12 +94,7 @@ void ClientConnection::run() {
       }
     }
 
-    if (!recv_buf.empty()) {
-      // Log recv buf as ascii
-      spdlog::debug("Received data ({} bytes) (ASCII):\n{}",
-                    num_bytes_read.value(),
-                    std::string(recv_buf.begin(), recv_buf.end()));
-    }
+    log_received_data(recv_buf, num_bytes_read);
   }
 }
 
