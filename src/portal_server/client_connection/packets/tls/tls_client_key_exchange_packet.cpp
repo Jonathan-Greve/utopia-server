@@ -41,7 +41,7 @@ TlsClientKeyExchangePacket::TlsClientKeyExchangePacket(
   }
 
   msg_type = data[5];
-  if (msg_type != 12) {
+  if (msg_type != 16) {
     spdlog::trace("Invalid TLS message type: {}", msg_type);
     return;
   }
@@ -55,6 +55,8 @@ TlsClientKeyExchangePacket::TlsClientKeyExchangePacket(
   }
 
   std::copy(data.begin() + 11, data.begin() + 139, public_key.begin());
+
+  is_valid_ = true;
 }
 
 std::uint32_t TlsClientKeyExchangePacket::get_packet_size() const noexcept {

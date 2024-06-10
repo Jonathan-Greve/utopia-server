@@ -26,7 +26,7 @@ public:
   std::uint8_t type = 0x16;                        // byte 0
   std::uint16_t tls_version = 0x0303;              // bytes 1-2
   std::uint16_t size = 139;                        // bytes 3-4
-  std::uint8_t msg_type = 10;                      // byte 5
+  std::uint8_t msg_type = 16;                      // byte 5
   std::array<std::uint8_t, 3> msg_length{0, 0, 0}; // bytes 6-8
 
   std::uint16_t public_key_length = 128; // bytes 9-10
