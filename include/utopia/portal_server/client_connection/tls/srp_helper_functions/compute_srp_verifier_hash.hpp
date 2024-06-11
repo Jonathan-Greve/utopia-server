@@ -10,8 +10,8 @@
 namespace utopia::portal::client_connection {
 
 inline std::optional<std::array<std::uint8_t, 20>>
-compute_srp_verifier(const std::vector<std::uint8_t> &username,
-                     const std::vector<std::uint8_t> &password) {
+compute_srp_verifier_hash(const std::vector<std::uint8_t> &username,
+                          const std::vector<std::uint8_t> &password) {
   mbedtls_sha1_context ctx;
   mbedtls_sha1_init(&ctx);
   constexpr std::uint8_t separator = ':';
@@ -42,15 +42,15 @@ compute_srp_verifier(const std::vector<std::uint8_t> &username,
     return std::nullopt;
   }
 
-  std::array<std::uint8_t, 20> verifier;
-  if ((ret = mbedtls_sha1_finish_ret(&ctx, verifier.data())) != 0) {
+  std::array<std::uint8_t, 20> verifier_hash;
+  if ((ret = mbedtls_sha1_finish_ret(&ctx, verifier_hash.data())) != 0) {
     cleanup();
     return std::nullopt;
   }
 
   cleanup();
 
-  return verifier;
+  return verifier_hash;
 }
 
 } // namespace utopia::portal::client_connection

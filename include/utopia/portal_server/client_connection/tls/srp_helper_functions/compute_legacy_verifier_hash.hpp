@@ -1,7 +1,7 @@
 #pragma once
 
 #include "utopia/common/network/endian/endian.hpp"
-#include "utopia/portal_server/client_connection/tls/srp_helper_functions/compute_srp_verifier.hpp"
+#include "utopia/portal_server/client_connection/tls/srp_helper_functions/compute_srp_verifier_hash.hpp"
 
 #include <spdlog/spdlog.h>
 
@@ -13,8 +13,8 @@
 namespace utopia::portal::client_connection {
 
 inline std::optional<std::array<std::uint8_t, 20>>
-compute_legacy_verifier(const std::vector<std::uint8_t> &username,
-                        const std::vector<std::uint8_t> &password) {
+compute_legacy_verifier_hash(const std::vector<std::uint8_t> &username,
+                             const std::vector<std::uint8_t> &password) {
   using namespace common;
   std::array<std::uint16_t, 256> buffer;
 
@@ -59,7 +59,7 @@ compute_legacy_verifier(const std::vector<std::uint8_t> &username,
   le32_enc(&temp_digest[12], be32_dec(&temp_digest[12]));
   le32_enc(&temp_digest[16], be32_dec(&temp_digest[16]));
 
-  return compute_srp_verifier(username, temp_digest);
+  return compute_srp_verifier_hash(username, temp_digest);
 }
 
 } // namespace utopia::portal::client_connection
