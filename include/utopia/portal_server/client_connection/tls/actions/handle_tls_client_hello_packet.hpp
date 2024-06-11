@@ -19,6 +19,7 @@ inline const auto handle_tls_client_hello_packet =
       mbedtls_sha256_update_ret(&context.checksum, &data.at(5), event.size);
 
       context.client_random = event.random;
+      context.server_key.generate(event.extension_srp_data);
 
       spdlog::trace("Handling Tls Client Hello packet.");
     };

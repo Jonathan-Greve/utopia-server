@@ -4,12 +4,14 @@
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/dhm.h"
 #include "mbedtls/entropy.h"
+#include "utopia/portal_server/client_connection/tls/srp_helper_functions/compute_legacy_verifier.hpp"
 
 #include <spdlog/spdlog.h>
 
 #include <array>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 namespace utopia::portal::client_connection {
 
@@ -18,9 +20,26 @@ public:
   std::array<uint8_t, 128> prime{};
   std::array<uint8_t, 1> generator{};
   std::array<uint8_t, 8> salt{};
+  std::array<uint8_t, 20> verifier{};
   std::array<uint8_t, 128> server_public{};
 
-  ServerKey() {
+  ServerKey() = default;
+
+  inline void generate(std::vector<uint8_t> username) {
+    std::string hardcoded_password = "admin";
+    std::vector<uint8_t> hardcoded_password_vec(hardcoded_password.begin(),
+                                                hardcoded_password.end());
+
+    auto verifier_opt =
+        compute_legacy_verifier(username, hardcoded_password_vec);
+
+    if (!verifier_opt) {
+      spdlog::error("Failed to compute verifier");
+      return;
+    }
+
+    verifier = verifier_opt.value();
+
     // The server prime key must match the one stored in the GwLoginClient.dll
     constexpr std::array<uint8_t, 128> hardcoded_prime = {
         0xee, 0xaf, 0x0a, 0xb9, 0xad, 0xb3, 0x8d, 0xd6, 0x9c, 0x33, 0xf8, 0x0a,
