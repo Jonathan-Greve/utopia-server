@@ -6,6 +6,7 @@
 #include <boost/circular_buffer.hpp>
 #include <mbedtls/sha256.h>
 
+#include <array>
 #include <cstdint>
 
 namespace utopia::portal::client_connection {
@@ -20,7 +21,11 @@ struct TlsContext {
 
   mbedtls_sha256_context checksum;
 
+  std::array<std::uint8_t, 32> server_random;
   ServerKey server_key;
+
+  std::array<std::uint8_t, 32> client_random;
+  std::array<std::uint8_t, 128> client_public;
 };
 
 } // namespace utopia::portal::client_connection

@@ -30,6 +30,8 @@ inline const auto send_tls_server_hello =
       mbedtls_sha256_update_ret(&context.checksum, &data.at(5),
                                 tls_server_hello_packet.size);
 
+      context.server_random = tls_server_hello_packet.random;
+
       spdlog::debug("Sent STS Connect Reply packet.");
       event_queue->enqueue(
           ClientConnectionEvent{TlsEvents::SentServerHelloReply{}});

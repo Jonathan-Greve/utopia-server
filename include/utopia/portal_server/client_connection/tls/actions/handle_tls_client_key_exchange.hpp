@@ -18,6 +18,8 @@ inline const auto handle_tls_client_key_exchange =
       const auto data = event.serialize();
       mbedtls_sha256_update_ret(&context.checksum, &data.at(5), event.size);
 
+      context.client_public = event.public_key;
+
       spdlog::trace("Handling Tls Client Key Exchange packet.");
     };
 
