@@ -50,6 +50,10 @@ public:
     constexpr std::array<uint8_t, 8> hardcoded_salt = {0x62, 0x53, 0xf6, 0xf2,
                                                        0x34, 0x00, 0x09, 0x20};
 
+    // See: `https://www.nic.ad.jp/ja/tech/ipa/RFC5054EN.html` (Which is a link
+    // to the RFC 5054): "Using the Secure Remote Password (SRP) Protocol for
+    // TLS Authentication" for more information on the computations.
+
     // Compute verifier:
     // x = SHA1(s | SHA1(I | ":" | P))
     // v = g^x % N
