@@ -186,7 +186,7 @@ public:
   }
 
 private:
-  std::array<uint8_t, 32> private_key; // 32 bytes is actually enough.
+  std::array<uint8_t, 32> private_key;
 };
 
 } // namespace utopia::portal::client_connection
