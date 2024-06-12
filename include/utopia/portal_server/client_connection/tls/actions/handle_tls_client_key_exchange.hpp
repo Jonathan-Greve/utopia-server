@@ -5,19 +5,21 @@
 #include "utopia/portal_server/client_connection/packets/tls/tls_client_key_exchange_packet.hpp"
 #include "utopia/portal_server/client_connection/tls/srp_helper_functions/concat.hpp"
 #include "utopia/portal_server/client_connection/tls/srp_helper_functions/pad.hpp"
+#include "utopia/portal_server/client_connection/tls/srp_helper_functions/serialize_tls12_random.hpp"
 #include "utopia/portal_server/client_connection/tls/srp_helper_functions/sha1.hpp"
+#include "utopia/portal_server/client_connection/tls/srp_helper_functions/tls_prf_sha256.hpp"
 #include "utopia/portal_server/client_connection/tls/tls_context.hpp"
 
-#include <asio.hpp>
 #include <concurrentqueue.h>
 #include <mbedtls/bignum.h>
 #include <spdlog/spdlog.h>
 
+#include <cstdint>
+
 namespace utopia::portal::client_connection {
 
 inline const auto handle_tls_client_key_exchange =
-    [](asio::io_context &io,
-       moodycamel::ConcurrentQueue<ClientConnectionEvent> *event_queue,
+    [](moodycamel::ConcurrentQueue<ClientConnectionEvent> *event_queue,
        TlsClientKeyExchangePacket event, TlsContext &context) {
       const auto data = event.serialize();
       mbedtls_sha256_update_ret(&context.checksum, &data.at(5), event.size);
@@ -83,6 +85,19 @@ inline const auto handle_tls_client_key_exchange =
         spdlog::error("Failed to write premaster secret");
         return;
       }
+
+      // Computer master key
+      const auto randoms =
+          serialize_tls12_random(context.client_random, context.server_random);
+
+      std::string label = "master secret";
+      std::vector<std::uint8_t> label_bytes(label.begin(), label.end());
+
+      std::vector<std::uint8_t> premaster_secret_vec(
+          context.premaster_secret.begin(), context.premaster_secret.end());
+
+      auto master_secret =
+          tls_prf_sha256(premaster_secret_vec, label_bytes, randoms, 48);
 
       spdlog::trace("Handling Tls Client Key Exchange packet.");
     };
