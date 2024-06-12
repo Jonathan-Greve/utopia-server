@@ -10,6 +10,8 @@
 #include <concurrentqueue.h>
 #include <spdlog/spdlog.h>
 
+#include <random>
+
 namespace utopia::portal::client_connection {
 
 inline const auto send_tls_server_hello =
@@ -18,6 +20,13 @@ inline const auto send_tls_server_hello =
        ClientConnection &client_connection, TlsContext &context) {
       // Send packet using default values
       TlsServerHelloPacket tls_server_hello_packet;
+
+      std::random_device rd;
+      std::mt19937 gen(rd());
+      std::uniform_int_distribution<> dis(0, 255);
+      std::generate(tls_server_hello_packet.random.begin(),
+                    tls_server_hello_packet.random.end(),
+                    [&]() { return dis(gen); });
 
       if (!client_connection.send(tls_server_hello_packet.serialize())) {
         spdlog::error("Failed to send STS Connect Reply packet.");
