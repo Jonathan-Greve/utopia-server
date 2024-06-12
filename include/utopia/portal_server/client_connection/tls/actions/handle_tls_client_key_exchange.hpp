@@ -14,7 +14,10 @@
 #include <mbedtls/bignum.h>
 #include <spdlog/spdlog.h>
 
+#include <array>
 #include <cstdint>
+#include <optional>
+#include <vector>
 
 namespace utopia::portal::client_connection {
 
@@ -87,17 +90,127 @@ inline const auto handle_tls_client_key_exchange =
       }
 
       // Computer master key
-      const auto randoms =
+      const auto randoms_cli_ser =
           serialize_tls12_random(context.client_random, context.server_random);
 
-      std::string label = "master secret";
-      std::vector<std::uint8_t> label_bytes(label.begin(), label.end());
+      constexpr std::string master_secret_label = "master secret";
+      const std::vector<std::uint8_t> master_secret_label_vec(
+          master_secret_label.begin(), master_secret_label.end());
 
-      std::vector<std::uint8_t> premaster_secret_vec(
+      const std::vector<std::uint8_t> premaster_secret_vec(
           context.premaster_secret.begin(), context.premaster_secret.end());
 
-      auto master_secret =
-          tls_prf_sha256(premaster_secret_vec, label_bytes, randoms, 48);
+      const auto master_secret = tls_prf_sha256(
+          premaster_secret_vec, master_secret_label_vec, randoms_cli_ser, 48);
+
+      if (!master_secret) {
+        spdlog::error("Failed to compute master secret");
+        return;
+      }
+
+      assert(master_secret.value().size() == 48);
+
+      context.master_secret = master_secret.value();
+
+      // Compute key block.
+      const auto randoms_ser_client =
+          serialize_tls12_random(context.server_random, context.client_random);
+
+      constexpr std::string keyblock_label = "key expansion";
+      const std::vector<std::uint8_t> keyblock_label_vec(keyblock_label.begin(),
+                                                         keyblock_label.end());
+
+      const auto keyblock_opt = tls_prf_sha256(
+          context.master_secret, keyblock_label_vec, randoms_ser_client, 104);
+
+      if (!keyblock_opt) {
+        spdlog::error("Failed to compute key block");
+        return;
+      }
+      auto &keyblock = keyblock_opt.value();
+
+      assert(keyblock.size() == 104);
+
+      // Setup keys HMAC and AES
+      std::span<const std::uint8_t> mac_enc_key(keyblock.data(), 20);
+      std::span<const std::uint8_t> mac_dec_key(keyblock.data() + 20, 20);
+      std::span<const std::uint8_t> cipher_enc_key(keyblock.data() + 40, 32);
+      std::span<const std::uint8_t> cipher_dec_key(keyblock.data() + 72, 32);
+
+      constexpr std::uint16_t CIPHER_KEY_BITS = 32 * 8;
+      if (mbedtls_aes_setkey_enc(&context.cipher_enc, cipher_enc_key.data(),
+                                 CIPHER_KEY_BITS)) {
+        spdlog::error("Failed to set cipher_enc key");
+        return;
+      }
+      if (mbedtls_aes_setkey_dec(&context.cipher_dec, cipher_dec_key.data(),
+                                 CIPHER_KEY_BITS)) {
+        spdlog::error("Failed to set cipher_dec key");
+        return;
+      }
+
+      const mbedtls_md_info_t *md_info;
+      if ((md_info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA1)) == nullptr) {
+        spdlog::error("Failed to get md_info");
+        return;
+      }
+
+      constexpr int is_hmac = 1;
+      constexpr size_t HMAC_KEY_LEN = 20;
+
+      if (mbedtls_md_setup(&context.mac_enc, md_info, is_hmac)) {
+        spdlog::error("Failed to setup mac_enc");
+        return;
+      }
+      if (mbedtls_md_hmac_starts(&context.mac_enc, mac_enc_key.data(),
+                                 HMAC_KEY_LEN)) {
+        spdlog::error("Failed to start mac_enc");
+        return;
+      }
+
+      if (mbedtls_md_setup(&context.mac_dec, md_info, is_hmac)) {
+        spdlog::error("Failed to setup mac_dec");
+        return;
+      }
+      if (mbedtls_md_hmac_starts(&context.mac_dec, mac_dec_key.data(),
+                                 HMAC_KEY_LEN)) {
+        spdlog::error("Failed to start mac_dec");
+        return;
+      }
+
+      constexpr std::string client_finished_label = "client finished";
+      const std::vector<std::uint8_t> client_finished_label_vec(
+          client_finished_label.begin(), client_finished_label.end());
+
+      mbedtls_sha256_context checksum_ctx;
+      mbedtls_sha256_init(&checksum_ctx);
+      mbedtls_sha256_clone(&checksum_ctx, &context.checksum);
+
+      std::vector<std::uint8_t> checksum(32);
+      int ret = mbedtls_sha256_finish_ret(&checksum_ctx, checksum.data());
+      mbedtls_sha256_free(&checksum_ctx);
+
+      if (ret) {
+        spdlog::error("Failed to finish checksum");
+        return;
+      }
+
+      auto client_finished_opt =
+          tls_prf_sha256(context.master_secret, client_finished_label_vec,
+                         checksum, context.client_finished.size());
+
+      if (!client_finished_opt) {
+        spdlog::error("Failed to compute client finished data");
+        return;
+      }
+
+      assert(client_finished_opt.value().size() ==
+             context.client_finished.size());
+
+      auto &client_finished_data = client_finished_opt.value();
+
+      std::move(client_finished_data.begin(), client_finished_data.end(),
+                context.client_finished.begin());
 
       spdlog::trace("Handling Tls Client Key Exchange packet.");
     };
