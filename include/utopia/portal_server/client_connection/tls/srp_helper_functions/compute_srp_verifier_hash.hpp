@@ -1,5 +1,8 @@
 #pragma once
 
+#include "utopia/portal_server/client_connection/tls/srp_helper_functions/concat.hpp"
+#include "utopia/portal_server/client_connection/tls/srp_helper_functions/sha1.hpp"
+
 #include <mbedtls/sha1.h>
 
 #include <array>
@@ -12,45 +15,9 @@ namespace utopia::portal::client_connection {
 inline std::optional<std::array<std::uint8_t, 20>>
 compute_srp_verifier_hash(const std::vector<std::uint8_t> &username,
                           const std::vector<std::uint8_t> &password) {
-  mbedtls_sha1_context ctx;
-  mbedtls_sha1_init(&ctx);
-  constexpr std::uint8_t separator = ':';
 
-  auto cleanup = [&ctx]() { mbedtls_sha1_free(&ctx); };
-
-  int ret = 0;
-  if ((ret = mbedtls_sha1_starts_ret(&ctx)) != 0) {
-    cleanup();
-    return std::nullopt;
-  }
-
-  if ((ret = mbedtls_sha1_update_ret(&ctx, username.data(), username.size())) !=
-      0) {
-    cleanup();
-    return std::nullopt;
-  }
-
-  if ((ret = mbedtls_sha1_update_ret(&ctx, &separator, sizeof(separator))) !=
-      0) {
-    cleanup();
-    return std::nullopt;
-  }
-
-  if ((ret = mbedtls_sha1_update_ret(&ctx, password.data(), password.size())) !=
-      0) {
-    cleanup();
-    return std::nullopt;
-  }
-
-  std::array<std::uint8_t, 20> verifier_hash;
-  if ((ret = mbedtls_sha1_finish_ret(&ctx, verifier_hash.data())) != 0) {
-    cleanup();
-    return std::nullopt;
-  }
-
-  cleanup();
-
-  return verifier_hash;
+  std::vector<std::uint8_t> sep = {':'};
+  return sha1(concat(username, sep, password));
 }
 
 } // namespace utopia::portal::client_connection
