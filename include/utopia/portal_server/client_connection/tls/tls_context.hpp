@@ -26,6 +26,7 @@ struct TlsContext {
 
   std::array<std::uint8_t, 32> client_random;
   std::array<std::uint8_t, 128> client_public;
+  std::array<std::uint8_t, 128> premaster_secret;
 };
 
 } // namespace utopia::portal::client_connection
