@@ -21,12 +21,13 @@ struct TlsContext {
 
   mbedtls_sha256_context checksum;
 
-  std::array<std::uint8_t, 32> server_random;
-  ServerKey server_key;
+  std::array<std::uint8_t, 32> server_random{};
+  ServerKey server_key{};
 
-  std::array<std::uint8_t, 32> client_random;
-  std::array<std::uint8_t, 128> client_public;
-  std::array<std::uint8_t, 128> premaster_secret;
+  std::array<std::uint8_t, 32> client_random{};
+  std::array<std::uint8_t, 128> client_public{};
+  std::array<std::uint8_t, 128> premaster_secret{};
+  std::array<std::uint8_t, 48> master_secret{};
 };
 
 } // namespace utopia::portal::client_connection
