@@ -8,7 +8,7 @@
 namespace utopia::portal::client_connection {
 
 template <typename Range>
-std::vector<std::uint8_t> pad(const Range &data, std::uint32_t output_size) {
+std::vector<std::uint8_t> pad(const Range &data, std::size_t output_size) {
   static_assert(std::ranges::contiguous_range<Range> &&
                     std::ranges::sized_range<Range>,
                 "Range must be contiguous and sized");
