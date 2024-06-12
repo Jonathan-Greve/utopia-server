@@ -6,20 +6,12 @@
 #include <cstdint>
 
 namespace utopia::portal::client_connection {
-std::array<std::uint8_t, 64>
+std::vector<std::uint8_t>
 serialize_tls12_random(const std::array<std::uint8_t, 32> &client_random,
                        const std::array<std::uint8_t, 32> &server_random) {
-  std::array<std::uint8_t, 64> result;
-  std::uint32_t client_time;
-  std::uint32_t server_time;
-  std::memcpy(&client_time, client_random.data(), 4);
-  std::memcpy(&server_time, server_random.data(), 4);
-
-  common::be32_enc(result.data(), client_time);
-  std::copy(client_random.begin() + 4, client_random.end(), result.begin() + 4);
-  common::be32_enc(result.data() + 32, server_time);
-  std::copy(server_random.begin() + 4, server_random.end(),
-            result.begin() + 36);
+  std::vector<std::uint8_t> result(64);
+  std::copy(client_random.begin(), client_random.end(), result.begin());
+  std::copy(server_random.begin(), server_random.end(), result.begin() + 32);
 
   return result;
 }
