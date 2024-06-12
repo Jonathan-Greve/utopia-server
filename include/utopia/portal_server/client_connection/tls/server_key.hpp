@@ -1,14 +1,14 @@
 #pragma once
 
-#include "mbedtls/bignum.h"
-#include "mbedtls/ctr_drbg.h"
-#include "mbedtls/dhm.h"
-#include "mbedtls/entropy.h"
 #include "utopia/portal_server/client_connection/tls/srp_helper_functions/compute_legacy_verifier_hash.hpp"
 #include "utopia/portal_server/client_connection/tls/srp_helper_functions/concat.hpp"
 #include "utopia/portal_server/client_connection/tls/srp_helper_functions/pad.hpp"
 #include "utopia/portal_server/client_connection/tls/srp_helper_functions/sha1.hpp"
 
+#include <mbedtls/bignum.h>
+#include <mbedtls/ctr_drbg.h>
+#include <mbedtls/dhm.h>
+#include <mbedtls/entropy.h>
 #include <spdlog/spdlog.h>
 
 #include <array>
@@ -25,6 +25,7 @@ public:
   std::array<uint8_t, 8> salt{};
   std::array<uint8_t, 128> verifier{};
   std::array<uint8_t, 128> server_public{};
+  std::array<uint8_t, 32> private_key;
 
   ServerKey() = default;
 
@@ -184,9 +185,6 @@ public:
 
     cleanup();
   }
-
-private:
-  std::array<uint8_t, 32> private_key;
 };
 
 } // namespace utopia::portal::client_connection
