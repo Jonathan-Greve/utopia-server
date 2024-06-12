@@ -50,7 +50,7 @@ struct TlsContext {
 
   std::array<std::uint8_t, 8> next_read_id{};
   std::array<std::uint8_t, 8> next_write_id{};
-  std::array<std::uint8_t, 8> iv_enc{};
+  std::array<std::uint8_t, 16> iv_enc{};
   mbedtls_aes_context cipher_enc{};
   mbedtls_aes_context cipher_dec{};
   mbedtls_md_context_t mac_enc{};
