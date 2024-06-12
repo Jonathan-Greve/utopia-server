@@ -24,7 +24,7 @@
 #include <sstream>
 
 void log_received_data(const std::vector<std::uint8_t> &recv_buf,
-                       std::optional<size_t> num_bytes_read) {
+                       size_t num_bytes_read) {
   if (!recv_buf.empty()) {
     // Convert recv_buf to a hex string
     std::ostringstream hex_stream;
@@ -35,13 +35,15 @@ void log_received_data(const std::vector<std::uint8_t> &recv_buf,
     std::string hex_str = hex_stream.str();
 
     // Log recv_buf as ASCII
-    spdlog::debug("Received data ({} bytes) (ASCII):\n{}",
-                  num_bytes_read.value(),
-                  std::string(recv_buf.begin(), recv_buf.end()));
+    spdlog::debug(
+        "Received data ({} bytes recv, {} bytes in buffer) (ASCII):\n{}",
+        num_bytes_read, recv_buf.size(),
+        std::string(recv_buf.begin(), recv_buf.end()));
 
     // Log recv_buf as hex
-    spdlog::debug("Received data ({} bytes) (Hex):\n{}", num_bytes_read.value(),
-                  hex_str);
+    spdlog::debug(
+        "Received data ({} bytes recv, {} bytes in buffer) (Hex):\n{}",
+        num_bytes_read, recv_buf.size(), hex_str);
   }
 }
 
@@ -96,7 +98,7 @@ void ClientConnection::run() {
       }
     }
 
-    log_received_data(recv_buf, num_bytes_read);
+    log_received_data(recv_buf, num_bytes_read.value());
   }
 }
 
