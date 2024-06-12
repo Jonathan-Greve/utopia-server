@@ -5,7 +5,9 @@
 #include "mbedtls/dhm.h"
 #include "mbedtls/entropy.h"
 #include "utopia/portal_server/client_connection/tls/srp_helper_functions/compute_legacy_verifier_hash.hpp"
-#include "utopia/portal_server/client_connection/tls/srp_helper_functions/sha1_concat_2_values.hpp"
+#include "utopia/portal_server/client_connection/tls/srp_helper_functions/concat.hpp"
+#include "utopia/portal_server/client_connection/tls/srp_helper_functions/pad.hpp"
+#include "utopia/portal_server/client_connection/tls/srp_helper_functions/sha1.hpp"
 
 #include <spdlog/spdlog.h>
 
@@ -21,7 +23,7 @@ public:
   std::array<uint8_t, 128> prime{};
   std::array<uint8_t, 1> generator{};
   std::array<uint8_t, 8> salt{};
-  std::array<uint8_t, 20> verifier{};
+  std::array<uint8_t, 128> verifier{};
   std::array<uint8_t, 128> server_public{};
 
   ServerKey() = default;
@@ -50,6 +52,10 @@ public:
     constexpr std::array<uint8_t, 8> hardcoded_salt = {0x62, 0x53, 0xf6, 0xf2,
                                                        0x34, 0x00, 0x09, 0x20};
 
+    prime = hardcoded_prime;
+    salt = hardcoded_salt;
+    generator[0] = 2;
+
     // See: `https://www.nic.ad.jp/ja/tech/ipa/RFC5054EN.html` (Which is a link
     // to the RFC 5054): "Using the Secure Remote Password (SRP) Protocol for
     // TLS Authentication" for more information on the computations.
@@ -68,20 +74,15 @@ public:
     std::vector<uint8_t> hardcoded_password_vec(hardcoded_password.begin(),
                                                 hardcoded_password.end());
 
-    auto verifier_hash_opt =
+    auto verifier_hash =
         compute_legacy_verifier_hash(username, hardcoded_password_vec);
 
-    if (!verifier_hash_opt) {
+    if (!verifier_hash) {
       spdlog::error("Failed to compute verifier hash");
       return;
     }
 
-    // Add salt to the verifier_hash
-    std::vector<std::uint8_t> salt_vec(hardcoded_salt.begin(),
-                                       hardcoded_salt.end());
-    std::vector<std::uint8_t> verifier_hash_vec(
-        verifier_hash_opt.value().begin(), verifier_hash_opt.value().end());
-    auto x = sha1_concat_2_values(salt_vec, verifier_hash_vec);
+    auto x = sha1(concat(salt, verifier_hash.value()));
 
     if (!x) {
       spdlog::error("Failed to compute x");
@@ -93,98 +94,99 @@ public:
     mbedtls_mpi_init(&mpi_g);
     mbedtls_mpi_init(&mpi_x);
     mbedtls_mpi_init(&mpi_v);
-    int ret = 0;
-    if ((ret = mbedtls_mpi_read_binary(&mpi_N, hardcoded_prime.data(),
-                                       hardcoded_prime.size())) != 0) {
-      spdlog::error("Failed to read binary prime");
+
+    mbedtls_mpi mpi_b, mpi_k, mpi_B, mpi_temp1, mpi_temp2, mpi_temp3;
+    mbedtls_mpi_init(&mpi_b);
+    mbedtls_mpi_init(&mpi_k);
+    mbedtls_mpi_init(&mpi_B);
+    mbedtls_mpi_init(&mpi_temp1);
+    mbedtls_mpi_init(&mpi_temp2);
+    mbedtls_mpi_init(&mpi_temp3);
+
+    auto cleanup = [&]() {
+      mbedtls_mpi_free(&mpi_N);
+      mbedtls_mpi_free(&mpi_g);
+      mbedtls_mpi_free(&mpi_x);
+      mbedtls_mpi_free(&mpi_v);
+      mbedtls_mpi_free(&mpi_b);
+      mbedtls_mpi_free(&mpi_k);
+      mbedtls_mpi_free(&mpi_B);
+      mbedtls_mpi_free(&mpi_temp1);
+      mbedtls_mpi_free(&mpi_temp2);
+      mbedtls_mpi_free(&mpi_temp3);
+    };
+
+    if (mbedtls_mpi_read_binary(&mpi_N, hardcoded_prime.data(),
+                                hardcoded_prime.size()) ||
+        mbedtls_mpi_read_binary(&mpi_g, generator.data(), generator.size()) ||
+        mbedtls_mpi_read_binary(&mpi_x, x.value().data(), x.value().size())) {
+      spdlog::error("Failed to read mpi values");
+      cleanup();
       return;
     }
 
-    if ((ret = mbedtls_mpi_read_binary(&mpi_g, generator.data(),
-                                       generator.size())) != 0) {
-      spdlog::error("Failed to read binary generator");
-      return;
-    }
-
-    if ((ret = mbedtls_mpi_read_binary(&mpi_x, x.value().data(),
-                                       x.value().size())) != 0) {
-      spdlog::error("Failed to read binary x");
-      return;
-    }
-    if ((ret = mbedtls_mpi_exp_mod(&mpi_v, &mpi_g, &mpi_x, &mpi_N, nullptr)) !=
-        0) {
+    if (mbedtls_mpi_exp_mod(&mpi_v, &mpi_g, &mpi_x, &mpi_N, nullptr) ||
+        mbedtls_mpi_write_binary(&mpi_v, verifier.data(), verifier.size())) {
       spdlog::error("Failed to compute verifier");
+      cleanup();
       return;
     }
 
-    if ((ret = mbedtls_mpi_write_binary(&mpi_v, verifier.data(),
-                                        verifier.size())) != 0) {
-      spdlog::error("Failed to write binary verifier");
+    // Initialize random number generator
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context ctr_drbg;
+    mbedtls_entropy_init(&entropy);
+    mbedtls_ctr_drbg_init(&ctr_drbg);
+    const char *pers = "mbedtls";
+    if (mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
+                              (const unsigned char *)pers, strlen(pers)) != 0) {
+      spdlog::error("Failed to seed RNG");
+      cleanup();
       return;
     }
 
-    prime = hardcoded_prime;
-    salt = hardcoded_salt;
-    generator[0] = 2;
+    // Compute public key
+    const auto k = sha1(concat(prime, pad(generator, prime.size())));
 
-    // mbedtls_entropy_context entropy;
-    // mbedtls_ctr_drbg_context ctr_drbg;
-    // mbedtls_mpi p, g, x, y;
+    if (mbedtls_ctr_drbg_random(&ctr_drbg, private_key.data(),
+                                private_key.size()) ||
+        mbedtls_mpi_read_binary(&mpi_b, private_key.data(),
+                                private_key.size())) {
+      spdlog::error("Failed to generate private key");
+      cleanup();
+      return;
+    }
 
-    // mbedtls_entropy_init(&entropy);
-    // mbedtls_ctr_drbg_init(&ctr_drbg);
-    // mbedtls_mpi_init(&p);
-    // mbedtls_mpi_init(&g);
-    // mbedtls_mpi_init(&x);
-    // mbedtls_mpi_init(&y);
+    if (mbedtls_mpi_read_binary(&mpi_k, k.value().data(), k.value().size())) {
+      spdlog::error("Failed to read k value");
+      cleanup();
+      return;
+    }
 
-    // const char *personalization = "server_key_gen";
+    // Compute B = (k*v + (g^b % N)) % N. Note that RFC 5054 writes:  B =
+    // k*v + g^b % N, which is not correct.
+    if (mbedtls_mpi_exp_mod(&mpi_temp1, &mpi_g, &mpi_b, &mpi_N, nullptr) ||
+        mbedtls_mpi_mul_mpi(&mpi_temp2, &mpi_k, &mpi_v) ||
+        mbedtls_mpi_add_mpi(&mpi_temp3, &mpi_temp2, &mpi_temp1) ||
+        mbedtls_mpi_mod_mpi(&mpi_B, &mpi_temp3, &mpi_N)) {
+      spdlog::error("Failed to compute B");
+      cleanup();
+      return;
+    }
 
-    // // Seed and set up the random number generator
-    // if (mbedtls_ctr_drbg_seed(
-    //         &ctr_drbg, mbedtls_entropy_func, &entropy,
-    //         reinterpret_cast<const unsigned char *>(personalization),
-    //         strlen(personalization)) != 0) {
-    //   spdlog::error("Failed to initialize random number generator");
-    //   return;
-    // }
+    // Store public
+    if (mbedtls_mpi_write_binary(&mpi_B, server_public.data(),
+                                 server_public.size())) {
+      spdlog::error("Failed to write public key");
+      cleanup();
+      return;
+    }
 
-    // // Load prime and generator into mbedtls_mpi structures
-    // mbedtls_mpi_read_binary(&p, prime.data(), prime.size());
-    // mbedtls_mpi_read_binary(&g, generator.data(), generator.size());
-
-    // // Generate private key x
-    // if (mbedtls_mpi_fill_random(&x, 32, mbedtls_ctr_drbg_random, &ctr_drbg)
-    // !=
-    //     0) {
-    //   spdlog::error("Failed to generate private key");
-    //   return;
-    // }
-
-    // // Store the private key x in the private member
-    // size_t x_size = mbedtls_mpi_size(&x);
-    // private_key.resize(x_size);
-    // mbedtls_mpi_write_binary(&x, private_key.data(), x_size);
-
-    // // Compute server public key y = g^x mod p
-    // if (mbedtls_mpi_exp_mod(&y, &g, &x, &p, NULL) != 0) {
-    //   spdlog::error("Failed to compute server public key");
-    //   return;
-    // }
-
-    // // Export the server public key to binary
-    // mbedtls_mpi_write_binary(&y, server_public.data(), server_public.size());
-
-    // mbedtls_mpi_free(&p);
-    // mbedtls_mpi_free(&g);
-    // mbedtls_mpi_free(&x);
-    // mbedtls_mpi_free(&y);
-    // mbedtls_ctr_drbg_free(&ctr_drbg);
-    // mbedtls_entropy_free(&entropy);
+    cleanup();
   }
 
 private:
-  std::vector<uint8_t> private_key; // Private key stored as a private member
+  std::array<uint8_t, 32> private_key; // 32 bytes is actually enough.
 };
 
 } // namespace utopia::portal::client_connection
