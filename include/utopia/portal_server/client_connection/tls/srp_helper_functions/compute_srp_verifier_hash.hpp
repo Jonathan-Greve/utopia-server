@@ -16,7 +16,7 @@ inline std::optional<std::array<std::uint8_t, 20>>
 compute_srp_verifier_hash(const std::vector<std::uint8_t> &username,
                           const std::vector<std::uint8_t> &password) {
 
-  std::vector<std::uint8_t> sep = {':'};
+  constexpr std::array<std::uint8_t, 1> sep = {':'};
   return sha1(concat(username, sep, password));
 }
 
