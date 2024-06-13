@@ -131,11 +131,13 @@ inline const auto handle_tls_client_key_exchange =
 
       assert(keyblock.size() == 104);
 
-      // Setup keys HMAC and AES
-      std::span<const std::uint8_t> mac_enc_key(keyblock.data(), 20);
-      std::span<const std::uint8_t> mac_dec_key(keyblock.data() + 20, 20);
-      std::span<const std::uint8_t> cipher_enc_key(keyblock.data() + 40, 32);
-      std::span<const std::uint8_t> cipher_dec_key(keyblock.data() + 72, 32);
+      // Setup keys HMAC and AES. Note that we're using symmetric encryption
+      // algorithms. So the decode key on the client is the same as the encode
+      // key on the server.
+      std::span<const std::uint8_t> mac_dec_key(keyblock.data(), 20);
+      std::span<const std::uint8_t> mac_enc_key(keyblock.data() + 20, 20);
+      std::span<const std::uint8_t> cipher_dec_key(keyblock.data() + 40, 32);
+      std::span<const std::uint8_t> cipher_enc_key(keyblock.data() + 72, 32);
 
       constexpr std::uint16_t CIPHER_KEY_BITS = 32 * 8;
       if (mbedtls_aes_setkey_enc(&context.cipher_enc, cipher_enc_key.data(),
