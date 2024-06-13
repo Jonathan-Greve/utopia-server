@@ -34,6 +34,11 @@ struct TlsContext {
       spdlog::error("Failed to generate IV");
       return;
     }
+
+    mbedtls_aes_init(&cipher_enc);
+    mbedtls_aes_init(&cipher_dec);
+    mbedtls_md_init(&mac_enc);
+    mbedtls_md_init(&mac_dec);
   }
 
   boost::circular_buffer<common::StateTransitionLogEntry> state_log{100};
