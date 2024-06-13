@@ -1,9 +1,10 @@
 #pragma once
 #include "utopia/portal_server/client_connection/packets/tls/tls_change_cipher_spec_packet.hpp"
+#include "utopia/portal_server/client_connection/packets/tls/tls_client_finished_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_client_hello_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_client_key_exchange_packet.hpp"
 #include "utopia/portal_server/client_connection/tls/actions/handle_tls_client_change_cipher_spec.hpp"
-#include "utopia/portal_server/client_connection/tls/actions/handle_tls_client_handshake_finished.hpp"
+#include "utopia/portal_server/client_connection/tls/actions/handle_tls_client_finished.hpp"
 #include "utopia/portal_server/client_connection/tls/actions/handle_tls_client_hello_packet.hpp"
 #include "utopia/portal_server/client_connection/tls/actions/handle_tls_client_key_exchange.hpp"
 #include "utopia/portal_server/client_connection/tls/actions/send_tls_server_hello.hpp"
@@ -43,7 +44,7 @@ struct TlsStateMachine {
 
       , state<TlsStates::ReceivedClientKeyExchange> + event<TlsChangeCipherSpecPacket> = state<TlsStates::ReceivedChangeCipherSpec>
 
-      // , state<TlsStates::ReceivedChangeCipherSpec> + event<TlsEvents::ReceivedClientHandshakeFinished> = state<TlsStates::ReceivedClientHadnshakeFinished>
+      , state<TlsStates::ReceivedChangeCipherSpec> + event<TlsClientFinishedPacket> / handle_tls_client_finished
 
     );
     // clang-format on
