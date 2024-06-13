@@ -39,9 +39,9 @@ TlsClientFinishedPacket::TlsClientFinishedPacket(std::vector<uint8_t> &data) {
     return;
   }
 
-  std::copy(data.begin() + 6, data.begin() + 22, iv_enc.begin());
+  std::copy(data.begin() + 5, data.begin() + 21, iv_enc.begin());
 
-  std::copy(data.begin() + 22, data.begin() + 70, encrypted_msg.begin());
+  std::copy(data.begin() + 21, data.begin() + 69, encrypted_msg.begin());
 
   is_valid_ = true;
 }
@@ -60,8 +60,8 @@ std::vector<uint8_t> TlsClientFinishedPacket::serialize() {
   packet.at(0) = type;
   utopia::common::be16_enc(&packet.at(1), tls_version);
   utopia::common::be16_enc(&packet.at(3), size);
-  std::copy(iv_enc.begin(), iv_enc.end(), packet.begin() + 6);
-  std::copy(encrypted_msg.begin(), encrypted_msg.end(), packet.begin() + 22);
+  std::copy(iv_enc.begin(), iv_enc.end(), packet.begin() + 5);
+  std::copy(encrypted_msg.begin(), encrypted_msg.end(), packet.begin() + 21);
 
   return packet;
 }
