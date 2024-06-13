@@ -28,6 +28,16 @@ inline const auto handle_tls_client_finished =
         return;
       }
 
+      std::span<std::uint8_t> msg_header{decrypted_msg.data(), 4};
+      std::span<std::uint8_t> verify_data{decrypted_msg.data() + 4, 12};
+
+      // Check that verify_data is equal to context.client_finished
+      if (!std::equal(verify_data.begin(), verify_data.end(),
+                      context.client_finished.begin())) {
+        spdlog::error("Client Finished packet verify data does not match.");
+        return;
+      }
+
       spdlog::trace("Handling Tls Client Finished packet.");
     };
 
