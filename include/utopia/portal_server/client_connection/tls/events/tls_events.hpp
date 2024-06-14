@@ -10,6 +10,13 @@ struct TlsEvents {
   struct SentServerKeyExchangePacket {};
 
   struct SentServerHelloDonePacket {};
+
+  struct FailedToDecryptMessage {};
+  struct ClientFinishedVerifyDataMismatch {};
+  struct ClientFinishedPacketHandled {};
+
+  struct SentCipherChangeSpecPacket {};
+  struct SentServerFinishedPacket {};
 };
 
 } // namespace utopia::portal::client_connection

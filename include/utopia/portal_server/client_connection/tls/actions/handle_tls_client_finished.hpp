@@ -23,8 +23,8 @@ inline const auto handle_tls_client_finished =
                                 event.iv_enc.data(), event.encrypted_msg.data(),
                                 decrypted_msg.data())) {
         spdlog::error("Failed to decrypt message.");
-        // event_queue->enqueue(
-        //     ClientConnectionEvent{TlsEvents::FailedToDecryptMessage{}});
+        event_queue->enqueue(
+            ClientConnectionEvent{TlsEvents::FailedToDecryptMessage{}});
         return;
       }
 
@@ -35,9 +35,13 @@ inline const auto handle_tls_client_finished =
       if (!std::equal(verify_data.begin(), verify_data.end(),
                       context.client_finished.begin())) {
         spdlog::error("Client Finished packet verify data does not match.");
+        event_queue->enqueue(ClientConnectionEvent{
+            TlsEvents::ClientFinishedVerifyDataMismatch{}});
         return;
       }
 
+      event_queue->enqueue(
+          ClientConnectionEvent{TlsEvents::ClientFinishedPacketHandled{}});
       spdlog::trace("Handling Tls Client Finished packet.");
     };
 

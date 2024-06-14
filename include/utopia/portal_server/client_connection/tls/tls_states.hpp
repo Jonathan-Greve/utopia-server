@@ -11,6 +11,10 @@ struct TlsStates {
   struct ReceivedClientKeyExchange {};
   struct ReceivedChangeCipherSpec {};
   struct ReceivedClientHadnshakeFinished {};
+  struct ReceivedClientFinished {};
+  struct ClientFinished {};
+  struct SentCipherChangeSpec {};
+  struct SentServerFinished {};
 };
 
 } // namespace utopia::portal::client_connection

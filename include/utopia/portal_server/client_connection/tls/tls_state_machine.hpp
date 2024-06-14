@@ -7,6 +7,8 @@
 #include "utopia/portal_server/client_connection/tls/actions/handle_tls_client_finished.hpp"
 #include "utopia/portal_server/client_connection/tls/actions/handle_tls_client_hello_packet.hpp"
 #include "utopia/portal_server/client_connection/tls/actions/handle_tls_client_key_exchange.hpp"
+#include "utopia/portal_server/client_connection/tls/actions/send_tls_change_cipher_spec.hpp"
+#include "utopia/portal_server/client_connection/tls/actions/send_tls_server_finished.hpp"
 #include "utopia/portal_server/client_connection/tls/actions/send_tls_server_hello.hpp"
 #include "utopia/portal_server/client_connection/tls/actions/send_tls_server_hello_done.hpp"
 #include "utopia/portal_server/client_connection/tls/actions/send_tls_server_key_exchange.hpp"
@@ -40,12 +42,24 @@ struct TlsStateMachine {
       , state<TlsStates::SentServerKeyExchange> + event<TlsEvents::SentServerHelloDonePacket> = state<TlsStates::SentServerHelloDone>
       , state<TlsStates::SentServerKeyExchange> + event<TlsEvents::UnableToSendPacket> = X
 
-      ,  state<TlsStates::SentServerHelloDone> + event<TlsClientKeyExchangePacket> / handle_tls_client_key_exchange = state<TlsStates::ReceivedClientKeyExchange>
+      , state<TlsStates::SentServerHelloDone> + event<TlsClientKeyExchangePacket> / handle_tls_client_key_exchange = state<TlsStates::ReceivedClientKeyExchange>
 
       , state<TlsStates::ReceivedClientKeyExchange> + event<TlsChangeCipherSpecPacket> = state<TlsStates::ReceivedChangeCipherSpec>
 
-      , state<TlsStates::ReceivedChangeCipherSpec> + event<TlsClientFinishedPacket> / handle_tls_client_finished
+      , state<TlsStates::ReceivedChangeCipherSpec> + event<TlsClientFinishedPacket> = state<TlsStates::ReceivedClientFinished>
 
+      , state<TlsStates::ReceivedClientFinished> + on_entry<_> / handle_tls_client_finished
+      , state<TlsStates::ReceivedClientFinished> + event<TlsEvents::ClientFinishedPacketHandled> = state<TlsStates::ClientFinished>
+      , state<TlsStates::ReceivedClientFinished> + event<TlsEvents::FailedToDecryptMessage> = X
+      , state<TlsStates::ReceivedClientFinished> + event<TlsEvents::ClientFinishedVerifyDataMismatch> = X
+
+      , state<TlsStates::ClientFinished> + on_entry<_> / send_tls_change_cipher_spec
+      , state<TlsStates::ClientFinished> + event<TlsEvents::SentCipherChangeSpecPacket> = state<TlsStates::SentCipherChangeSpec>
+      , state<TlsStates::ClientFinished> + event<TlsEvents::UnableToSendPacket> = X
+
+      , state<TlsStates::SentCipherChangeSpec> + on_entry<_> / send_tls_server_finished
+      , state<TlsStates::SentCipherChangeSpec> + event<TlsEvents::SentServerFinishedPacket> = state<TlsStates::SentServerFinished>
+      , state<TlsStates::SentCipherChangeSpec> + event<TlsEvents::UnableToSendPacket> = X
     );
     // clang-format on
   }
