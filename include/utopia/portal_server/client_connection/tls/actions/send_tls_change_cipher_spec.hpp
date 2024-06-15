@@ -18,7 +18,24 @@ inline const auto send_tls_change_cipher_spec =
     [](asio::io_context &io,
        moodycamel::ConcurrentQueue<ClientConnectionEvent> *event_queue,
        ClientConnection &client_connection, TlsContext &context) {
-      spdlog::debug("Sending TLS Change Cipher Spec.");
+      // Send packet using default values
+      TlsChangeCipherSpecPacket tls_change_cipher_spec_packet;
+
+      if (!client_connection.send(tls_change_cipher_spec_packet.serialize())) {
+        spdlog::error("Failed to TLS change cipher packet.");
+        event_queue->enqueue(
+            ClientConnectionEvent{TlsEvents::UnableToSendPacket{}});
+        return;
+      }
+
+      const auto data = tls_change_cipher_spec_packet.serialize();
+      mbedtls_sha256_update_ret(&context.checksum, &data.at(5),
+                                tls_change_cipher_spec_packet.size);
+
+      event_queue->enqueue(
+          ClientConnectionEvent{TlsEvents::SentCipherChangeSpecPacket{}});
+
+      spdlog::debug("Sent TLS Change Cipher Spec Packet.");
     };
 
 } // namespace utopia::portal::client_connection

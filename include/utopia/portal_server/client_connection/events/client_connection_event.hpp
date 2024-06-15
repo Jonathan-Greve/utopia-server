@@ -8,16 +8,16 @@
 
 namespace utopia::portal::client_connection {
 
-using ClientConnectionEvent =
-    std::variant<ClientConnectionEvents::UnableToSendPacket,
-                 ClientConnectionEvents::ReceivedValidConnectPacket,
-                 ClientConnectionEvents::ReceivedValidStartTlsPacket,
-                 ClientConnectionEvents::SentStartTlsReplyPacket,
+using ClientConnectionEvent = std::variant<
+    ClientConnectionEvents::UnableToSendPacket,
+    ClientConnectionEvents::ReceivedValidConnectPacket,
+    ClientConnectionEvents::ReceivedValidStartTlsPacket,
+    ClientConnectionEvents::SentStartTlsReplyPacket,
 
-                 TlsEvents::UnableToSendPacket, TlsEvents::SentServerHelloReply,
-                 TlsEvents::SentServerKeyExchangePacket,
-                 TlsEvents::SentServerHelloDonePacket,
-                 TlsEvents::FailedToDecryptMessage,
-                 TlsEvents::ClientFinishedVerifyDataMismatch,
-                 TlsEvents::ClientFinishedPacketHandled>;
+    TlsEvents::UnableToSendPacket, TlsEvents::SentServerHelloReply,
+    TlsEvents::SentServerKeyExchangePacket,
+    TlsEvents::SentServerHelloDonePacket, TlsEvents::FailedToDecryptMessage,
+    TlsEvents::ClientFinishedVerifyDataMismatch,
+    TlsEvents::ClientFinishedPacketHandled,
+    TlsEvents::SentCipherChangeSpecPacket, TlsEvents::SentServerFinishedPacket>;
 } // namespace utopia::portal::client_connection
