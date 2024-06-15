@@ -8,6 +8,9 @@
 
 #include <asio.hpp>
 #include <concurrentqueue.h>
+#include <mbedtls/aes.h>
+#include <mbedtls/md.h>
+#include <mbedtls/sha256.h>
 #include <spdlog/spdlog.h>
 
 namespace utopia::portal::client_connection {
@@ -34,7 +37,6 @@ inline const auto handle_tls_client_finished =
       std::span<std::uint8_t> hmac{decrypted_msg.data() + 16, 20};
 
       // Validate the hmac
-      std::array<std::uint8_t, 20> calculated_hmac;
       mbedtls_md_hmac_reset(&context.mac_dec);
       mbedtls_md_hmac_update(&context.mac_dec, context.next_read_id.data(),
                              context.next_read_id.size());
@@ -54,9 +56,10 @@ inline const auto handle_tls_client_finished =
       mbedtls_md_hmac_update(&context.mac_dec, modified_header.data(),
                              modified_header.size());
 
-      // Decrypted msg header (4bytes) + verify_data (12bytes
+      // Decrypted msg header (4bytes) + verify_data (12bytes)
       mbedtls_md_hmac_update(&context.mac_dec, decrypted_msg.data(), 16);
 
+      std::array<std::uint8_t, 20> calculated_hmac;
       mbedtls_md_hmac_finish(&context.mac_dec, calculated_hmac.data());
 
       if (!std::equal(hmac.begin(), hmac.end(), calculated_hmac.begin())) {

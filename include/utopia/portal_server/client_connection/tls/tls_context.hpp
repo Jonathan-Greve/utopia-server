@@ -62,6 +62,7 @@ struct TlsContext {
   mbedtls_md_context_t mac_dec{};
 
   std::array<std::uint8_t, 12> client_finished{};
+  std::array<std::uint8_t, 12> server_finished{};
 };
 
 } // namespace utopia::portal::client_connection

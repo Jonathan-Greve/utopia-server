@@ -20,5 +20,5 @@ using ClientConnectionEvent = std::variant<
     TlsEvents::ClientFinishedVerifyDataMismatch,
     TlsEvents::ClientFinishedPacketHandled,
     TlsEvents::SentCipherChangeSpecPacket, TlsEvents::SentServerFinishedPacket,
-    TlsEvents::HmacValidationFailed>;
+    TlsEvents::HmacValidationFailed, TlsEvents::FailedToIssueNextIV>;
 } // namespace utopia::portal::client_connection

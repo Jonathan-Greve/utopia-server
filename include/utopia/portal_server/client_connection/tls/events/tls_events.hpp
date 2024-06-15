@@ -17,6 +17,8 @@ struct TlsEvents {
   struct ClientFinishedPacketHandled {};
 
   struct SentCipherChangeSpecPacket {};
+
+  struct FailedToIssueNextIV {};
   struct SentServerFinishedPacket {};
 };
 
