@@ -46,12 +46,10 @@ struct TlsStateMachine {
 
       , state<TlsStates::ReceivedClientKeyExchange> + event<TlsChangeCipherSpecPacket> = state<TlsStates::ReceivedChangeCipherSpec>
 
-      , state<TlsStates::ReceivedChangeCipherSpec> + event<TlsClientFinishedPacket> = state<TlsStates::ReceivedClientFinished>
-
-      , state<TlsStates::ReceivedClientFinished> + on_entry<_> / handle_tls_client_finished
-      , state<TlsStates::ReceivedClientFinished> + event<TlsEvents::ClientFinishedPacketHandled> = state<TlsStates::ClientFinished>
-      , state<TlsStates::ReceivedClientFinished> + event<TlsEvents::FailedToDecryptMessage> = X
-      , state<TlsStates::ReceivedClientFinished> + event<TlsEvents::ClientFinishedVerifyDataMismatch> = X
+      , state<TlsStates::ReceivedChangeCipherSpec> + event<TlsClientFinishedPacket> / handle_tls_client_finished
+      , state<TlsStates::ReceivedChangeCipherSpec> + event<TlsEvents::ClientFinishedPacketHandled> = state<TlsStates::ClientFinished>
+      , state<TlsStates::ReceivedChangeCipherSpec> + event<TlsEvents::FailedToDecryptMessage> = X
+      , state<TlsStates::ReceivedChangeCipherSpec> + event<TlsEvents::ClientFinishedVerifyDataMismatch> = X
 
       , state<TlsStates::ClientFinished> + on_entry<_> / send_tls_change_cipher_spec
       , state<TlsStates::ClientFinished> + event<TlsEvents::SentCipherChangeSpecPacket> = state<TlsStates::SentCipherChangeSpec>

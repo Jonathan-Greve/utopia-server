@@ -10,7 +10,6 @@ struct TlsStates {
   struct SentServerHelloDone {};
   struct ReceivedClientKeyExchange {};
   struct ReceivedChangeCipherSpec {};
-  struct ReceivedClientHadnshakeFinished {};
   struct ReceivedClientFinished {};
   struct ClientFinished {};
   struct SentCipherChangeSpec {};
