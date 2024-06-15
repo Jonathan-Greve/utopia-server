@@ -50,6 +50,7 @@ struct TlsStateMachine {
       , state<TlsStates::ReceivedChangeCipherSpec> + event<TlsEvents::ClientFinishedPacketHandled> = state<TlsStates::ClientFinished>
       , state<TlsStates::ReceivedChangeCipherSpec> + event<TlsEvents::FailedToDecryptMessage> = X
       , state<TlsStates::ReceivedChangeCipherSpec> + event<TlsEvents::ClientFinishedVerifyDataMismatch> = X
+      , state<TlsStates::ReceivedChangeCipherSpec> + event<TlsEvents::HmacValidationFailed> = X
 
       , state<TlsStates::ClientFinished> + on_entry<_> / send_tls_change_cipher_spec
       , state<TlsStates::ClientFinished> + event<TlsEvents::SentCipherChangeSpecPacket> = state<TlsStates::SentCipherChangeSpec>
