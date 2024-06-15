@@ -23,9 +23,11 @@ public:
 
   std::vector<uint8_t> serialize();
 
-  std::uint8_t type = 0x16;                   // byte 0
-  std::uint16_t tls_version = 0x0303;         // bytes 1-2
-  std::uint16_t size = 0x40;                  // bytes 3-4
+  std::uint8_t type = 0x16;           // byte 0
+  std::uint16_t tls_version = 0x0303; // bytes 1-2
+
+  // Size set to 0x10 for HMAC calculation and then 0x40 before encryption.
+  std::uint16_t size = 0x10;                  // bytes 3-4.
   std::array<std::uint8_t, 16> iv_enc;        // bytes 5-20
   std::array<std::uint8_t, 48> encrypted_msg; // bytes 21-68
 
