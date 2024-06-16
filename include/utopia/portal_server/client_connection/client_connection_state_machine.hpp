@@ -32,6 +32,8 @@ struct ClientConnectionStateMachine {
 
       , state<ClientConnectionStates::ReceivedStartTlsPacket> + on_entry<_> / send_sts_start_tls_reply_packet
       , state<ClientConnectionStates::ReceivedStartTlsPacket> + event<ClientConnectionEvents::SentStartTlsReplyPacket> = state<TlsStateMachine>
+
+      , state<TlsStateMachine> + event<TlsEvents::HandshakeComplete> = state<ClientConnectionStates::TlsHandshakeComplete>
       
       , state<ClientConnectionStates::Stopping> = X
 

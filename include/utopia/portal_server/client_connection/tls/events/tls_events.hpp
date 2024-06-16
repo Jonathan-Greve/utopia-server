@@ -21,6 +21,8 @@ struct TlsEvents {
 
   struct FailedToIssueNextIV {};
   struct SentServerFinishedPacket {};
+
+  struct HandshakeComplete {};
 };
 
 } // namespace utopia::portal::client_connection

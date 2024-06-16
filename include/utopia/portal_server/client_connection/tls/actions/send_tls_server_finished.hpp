@@ -122,6 +122,9 @@ inline const auto send_tls_server_finished =
         return;
       }
 
+      event_queue->enqueue(
+          ClientConnectionEvent{TlsEvents::SentServerFinishedPacket{}});
+
       spdlog::debug("Sent TLS Server Finished.");
     };
 

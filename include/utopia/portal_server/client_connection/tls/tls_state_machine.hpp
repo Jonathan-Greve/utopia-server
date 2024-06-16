@@ -3,6 +3,7 @@
 #include "utopia/portal_server/client_connection/packets/tls/tls_client_finished_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_client_hello_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_client_key_exchange_packet.hpp"
+#include "utopia/portal_server/client_connection/tls/actions/enqueue_handshake_complete_event.hpp"
 #include "utopia/portal_server/client_connection/tls/actions/handle_tls_client_change_cipher_spec.hpp"
 #include "utopia/portal_server/client_connection/tls/actions/handle_tls_client_finished.hpp"
 #include "utopia/portal_server/client_connection/tls/actions/handle_tls_client_hello_packet.hpp"
@@ -62,6 +63,9 @@ struct TlsStateMachine {
       , state<TlsStates::SentCipherChangeSpec> + event<TlsEvents::FailedToIssueNextIV> = X
       , state<TlsStates::SentCipherChangeSpec> + event<TlsEvents::HmacComputationFailed> = X
       , state<TlsStates::SentCipherChangeSpec> + event<TlsEvents::UnableToSendPacket> = X
+
+      // This will take us back to the ClientConnectionStateMachine
+      , state<TlsStates::SentServerFinished> + on_entry<_> / enqueue_handshake_complete_event 
     );
     // clang-format on
   }

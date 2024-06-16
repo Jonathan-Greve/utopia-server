@@ -8,6 +8,7 @@ struct ClientConnectionStates {
   struct ReceivedConnectPacket {};
   struct ReceivedStartTlsPacket {};
   struct SentStartTlsReplyPacket {};
+  struct TlsHandshakeComplete {};
   struct Stopping {};
 };
 
