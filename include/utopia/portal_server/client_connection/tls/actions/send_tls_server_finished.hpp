@@ -91,13 +91,14 @@ inline const auto send_tls_server_finished =
       common::be64_enc(context.next_write_id.data(),
                        common::be64_dec(context.next_write_id.data()) + 1);
 
-      const auto packet_unfished_ser = tls_server_finished_packet.serialize();
-      mbedtls_md_hmac_update(&context.mac_dec, packet_unfished_ser.data(), 5);
+      auto packet_unfished_ser = tls_server_finished_packet.serialize();
+      packet_unfished_ser[4] = 0x10;
+      mbedtls_md_hmac_update(&context.mac_enc, packet_unfished_ser.data(), 5);
 
       mbedtls_md_hmac_update(&context.mac_enc, msg_to_encrypt.data(), 0x10);
 
       std::array<std::uint8_t, 20> calculated_hmac;
-      mbedtls_md_hmac_finish(&context.mac_dec, calculated_hmac.data());
+      mbedtls_md_hmac_finish(&context.mac_enc, calculated_hmac.data());
 
       // Copy the calculated HMAC into the msg to be encrypted.
       std::copy(calculated_hmac.begin(), calculated_hmac.end(),
@@ -115,8 +116,6 @@ inline const auto send_tls_server_finished =
       mbedtls_aes_crypt_cbc(&context.cipher_enc, MBEDTLS_AES_ENCRYPT, 0x30,
                             iv_enc_opt.value().data(), msg_to_encrypt.data(),
                             tls_server_finished_packet.encrypted_msg.data());
-
-      tls_server_finished_packet.size = 0x40;
 
       // Send the packet
       if (!client_connection.send(tls_server_finished_packet.serialize())) {

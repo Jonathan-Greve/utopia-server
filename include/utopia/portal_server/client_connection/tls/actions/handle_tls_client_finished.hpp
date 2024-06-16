@@ -1,6 +1,7 @@
 #pragma once
 
 #include "utopia/common/network/endian/endian.hpp"
+#include "utopia/common/strings/get_hex_string_from_bytes.hpp"
 #include "utopia/portal_server/client_connection/events/client_connection_event.hpp"
 #include "utopia/portal_server/client_connection/events/client_connection_events.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_client_finished_packet.hpp"
@@ -20,7 +21,6 @@ inline const auto handle_tls_client_finished =
        moodycamel::ConcurrentQueue<ClientConnectionEvent> *event_queue,
        TlsClientFinishedPacket event, TlsContext &context) {
       const auto data = event.serialize();
-      mbedtls_sha256_update_ret(&context.checksum, &data.at(5), event.size);
 
       std::vector<std::uint8_t> decrypted_msg(0x30);
       if (mbedtls_aes_crypt_cbc(&context.cipher_dec, MBEDTLS_AES_DECRYPT, 0x30,
@@ -31,6 +31,14 @@ inline const auto handle_tls_client_finished =
             ClientConnectionEvent{TlsEvents::FailedToDecryptMessage{}});
         return;
       }
+
+      std::vector<std::uint8_t> data_vec(decrypted_msg.begin(),
+                                         decrypted_msg.begin() + 0x10);
+      const auto data_hex = common::get_hex_string_from_bytes(data_vec);
+      spdlog::info("Checksum -> Num bytes written: {}. Bytes: {}", data_hex,
+                   data_vec.size());
+      mbedtls_sha256_update_ret(&context.checksum, data_vec.data(),
+                                data_vec.size());
 
       std::span<std::uint8_t> msg_header{decrypted_msg.data(), 4};
       std::span<std::uint8_t> verify_data{decrypted_msg.data() + 4, 12};

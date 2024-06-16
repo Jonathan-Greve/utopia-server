@@ -28,9 +28,9 @@ inline const auto send_tls_change_cipher_spec =
         return;
       }
 
-      const auto data = tls_change_cipher_spec_packet.serialize();
-      mbedtls_sha256_update_ret(&context.checksum, &data.at(5),
-                                tls_change_cipher_spec_packet.size);
+      // const auto data = tls_change_cipher_spec_packet.serialize();
+      // mbedtls_sha256_update_ret(&context.checksum, &data.at(5),
+      //                           tls_change_cipher_spec_packet.size);
 
       event_queue->enqueue(
           ClientConnectionEvent{TlsEvents::SentCipherChangeSpecPacket{}});
