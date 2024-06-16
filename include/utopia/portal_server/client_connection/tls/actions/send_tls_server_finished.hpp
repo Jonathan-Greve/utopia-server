@@ -5,6 +5,7 @@
 #include "utopia/portal_server/client_connection/events/client_connection_event.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_server_finished_packet.hpp"
 #include "utopia/portal_server/client_connection/tls/events/tls_events.hpp"
+#include "utopia/portal_server/client_connection/tls/srp_helper_functions/tls_compute_handshake_finished_hmac.hpp"
 #include "utopia/portal_server/client_connection/tls/srp_helper_functions/tls_issue_next_iv.hpp"
 #include "utopia/portal_server/client_connection/tls/tls_context.hpp"
 
@@ -51,6 +52,8 @@ inline const auto send_tls_server_finished =
 
       if (ret) {
         spdlog::error("Failed to finish checksum");
+        event_queue->enqueue(
+            ClientConnectionEvent{TlsEvents::UnableToSendPacket{}});
         return;
       }
 
@@ -60,6 +63,8 @@ inline const auto send_tls_server_finished =
 
       if (!server_finished_opt) {
         spdlog::error("Failed to compute server finished data");
+        event_queue->enqueue(
+            ClientConnectionEvent{TlsEvents::UnableToSendPacket{}});
         return;
       }
 
@@ -82,30 +87,22 @@ inline const auto send_tls_server_finished =
                 msg_to_encrypt.begin() + 4);
 
       // Compute the HMAC (bytes 16 to 35. Next 20 bytes)
-      mbedtls_md_hmac_reset(&context.mac_enc);
-      mbedtls_md_hmac_update(&context.mac_enc, context.next_write_id.data(),
-                             context.next_write_id.size());
+      const auto calculated_hmac = tls_compute_handshake_finished_hmac(
+          context.next_write_id, tls_server_finished_packet.serialize(),
+          msg_to_encrypt, context, context.mac_enc);
 
-      // Increment context.next_write_id by 1 (in big endian) to prepare for
-      // sending the next server message
-      common::be64_enc(context.next_write_id.data(),
-                       common::be64_dec(context.next_write_id.data()) + 1);
-
-      auto packet_unfished_ser = tls_server_finished_packet.serialize();
-      packet_unfished_ser[4] = 0x10;
-      mbedtls_md_hmac_update(&context.mac_enc, packet_unfished_ser.data(), 5);
-
-      mbedtls_md_hmac_update(&context.mac_enc, msg_to_encrypt.data(), 0x10);
-
-      std::array<std::uint8_t, 20> calculated_hmac;
-      mbedtls_md_hmac_finish(&context.mac_enc, calculated_hmac.data());
+      if (!calculated_hmac) {
+        spdlog::error("Failed to compute HMAC.");
+        event_queue->enqueue(
+            ClientConnectionEvent{TlsEvents::HmacComputationFailed{}});
+      }
 
       // Copy the calculated HMAC into the msg to be encrypted.
-      std::copy(calculated_hmac.begin(), calculated_hmac.end(),
+      std::copy(calculated_hmac.value().begin(), calculated_hmac.value().end(),
                 msg_to_encrypt.begin() + 16);
 
-      // Pad to 48 bytes using PKCS7 padding. But the padded value is num bytes
-      // - 1.
+      // Pad to 48 bytes using PKCS7 padding. But the padded value is `num bytes
+      // - 1` rather than just `num bytes`.
       constexpr std::uint8_t num_bytes_to_pad = 48 - 36;
       constexpr std::uint8_t padding_byte = num_bytes_to_pad - 1;
       for (std::uint8_t i = 0; i < num_bytes_to_pad; i++) {

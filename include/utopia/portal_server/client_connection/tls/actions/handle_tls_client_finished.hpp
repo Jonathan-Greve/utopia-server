@@ -5,6 +5,7 @@
 #include "utopia/portal_server/client_connection/events/client_connection_event.hpp"
 #include "utopia/portal_server/client_connection/events/client_connection_events.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_client_finished_packet.hpp"
+#include "utopia/portal_server/client_connection/tls/srp_helper_functions/tls_compute_handshake_finished_hmac.hpp"
 #include "utopia/portal_server/client_connection/tls/tls_context.hpp"
 
 #include <asio.hpp>
@@ -13,6 +14,11 @@
 #include <mbedtls/md.h>
 #include <mbedtls/sha256.h>
 #include <spdlog/spdlog.h>
+
+#include <array>
+#include <cstdint>
+#include <optional>
+#include <string>
 
 namespace utopia::portal::client_connection {
 
@@ -32,45 +38,23 @@ inline const auto handle_tls_client_finished =
         return;
       }
 
-      std::vector<std::uint8_t> data_vec(decrypted_msg.begin(),
-                                         decrypted_msg.begin() + 0x10);
-      const auto data_hex = common::get_hex_string_from_bytes(data_vec);
-      spdlog::info("Checksum -> Num bytes written: {}. Bytes: {}", data_hex,
-                   data_vec.size());
-      mbedtls_sha256_update_ret(&context.checksum, data_vec.data(),
-                                data_vec.size());
+      // Update checksum with handshake message
+      mbedtls_sha256_update_ret(&context.checksum, decrypted_msg.data(), 0x10);
 
-      std::span<std::uint8_t> msg_header{decrypted_msg.data(), 4};
-      std::span<std::uint8_t> verify_data{decrypted_msg.data() + 4, 12};
+      const auto calculated_hmac = tls_compute_handshake_finished_hmac(
+          context.next_read_id, data, decrypted_msg, context, context.mac_dec);
+
+      if (!calculated_hmac) {
+        spdlog::error("Failed to compute HMAC.");
+        event_queue->enqueue(
+            ClientConnectionEvent{TlsEvents::HmacComputationFailed{}});
+        return;
+      }
+
+      // Validate the HMAC
       std::span<std::uint8_t> hmac{decrypted_msg.data() + 16, 20};
-
-      // Validate the hmac
-      mbedtls_md_hmac_reset(&context.mac_dec);
-      mbedtls_md_hmac_update(&context.mac_dec, context.next_read_id.data(),
-                             context.next_read_id.size());
-      // Increment context.next_read_id by 1 (in big endian) to prepare for the
-      // next client message
-      common::be64_enc(context.next_read_id.data(),
-                       common::be64_dec(context.next_read_id.data()) + 1);
-
-      // The HMAC message was encrypted with the TlsClientFinishedPacket's size
-      // set to 0x10. I.e. the size of the packet without the encrypted message.
-      // So we set it to 0x10 before computing our HMAC.
-
-      std::array<std::uint8_t, 5> modified_header;
-      std::copy(data.begin(), data.begin() + 5, modified_header.begin());
-      modified_header[4] = 0x10;
-
-      mbedtls_md_hmac_update(&context.mac_dec, modified_header.data(),
-                             modified_header.size());
-
-      // Decrypted msg header (4bytes) + verify_data (12bytes)
-      mbedtls_md_hmac_update(&context.mac_dec, decrypted_msg.data(), 16);
-
-      std::array<std::uint8_t, 20> calculated_hmac;
-      mbedtls_md_hmac_finish(&context.mac_dec, calculated_hmac.data());
-
-      if (!std::equal(hmac.begin(), hmac.end(), calculated_hmac.begin())) {
+      if (!std::equal(hmac.begin(), hmac.end(),
+                      calculated_hmac.value().begin())) {
         spdlog::error("HMAC validation failed.");
         event_queue->enqueue(
             ClientConnectionEvent{TlsEvents::HmacValidationFailed{}});
@@ -78,6 +62,7 @@ inline const auto handle_tls_client_finished =
       }
 
       // Check that verify_data is equal to context.client_finished
+      std::span<std::uint8_t> verify_data{decrypted_msg.data() + 4, 12};
       if (!std::equal(verify_data.begin(), verify_data.end(),
                       context.client_finished.begin())) {
         spdlog::error("Client Finished packet verify data does not match.");
@@ -85,8 +70,13 @@ inline const auto handle_tls_client_finished =
             TlsEvents::ClientFinishedVerifyDataMismatch{}});
       }
 
+      // Increment context.next_read_id by 1 (in big endian) to prepare for the
+      // next client message
+      common::be64_enc(context.next_read_id.data(),
+                       common::be64_dec(context.next_read_id.data()) + 1);
+
       event_queue->enqueue(
           ClientConnectionEvent{TlsEvents::ClientFinishedPacketHandled{}});
-      spdlog::trace("Handling Tls Client Finished packet.");
+      spdlog::trace("Handled Tls Client Finished packet.");
     };
 } // namespace utopia::portal::client_connection

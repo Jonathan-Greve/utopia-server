@@ -14,6 +14,7 @@ struct TlsEvents {
   struct FailedToDecryptMessage {};
   struct ClientFinishedVerifyDataMismatch {};
   struct HmacValidationFailed {};
+  struct HmacComputationFailed {};
   struct ClientFinishedPacketHandled {};
 
   struct SentCipherChangeSpecPacket {};
