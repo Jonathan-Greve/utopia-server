@@ -10,7 +10,7 @@
 namespace utopia::portal::client_connection {
 
 template <typename... Ranges>
-std::vector<std::uint8_t> concat(const Ranges &...data) {
+inline std::vector<std::uint8_t> concat(const Ranges &...data) {
   static_assert((std::ranges::contiguous_range<Ranges> && ...),
                 "Each range must be contiguous");
   static_assert((std::ranges::sized_range<Ranges> && ...),

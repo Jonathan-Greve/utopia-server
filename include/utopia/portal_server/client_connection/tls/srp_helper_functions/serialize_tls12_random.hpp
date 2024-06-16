@@ -6,7 +6,7 @@
 #include <cstdint>
 
 namespace utopia::portal::client_connection {
-std::vector<std::uint8_t>
+inline std::vector<std::uint8_t>
 serialize_tls12_random(const std::array<std::uint8_t, 32> &client_random,
                        const std::array<std::uint8_t, 32> &server_random) {
   std::vector<std::uint8_t> result(64);

@@ -9,7 +9,7 @@
 #include <vector>
 
 namespace utopia::portal::client_connection {
-std::optional<std::array<std::uint8_t, 20>>
+inline std::optional<std::array<std::uint8_t, 20>>
 sha1(const std::vector<std::uint8_t> &data) {
   mbedtls_sha1_context ctx;
   mbedtls_sha1_init(&ctx);

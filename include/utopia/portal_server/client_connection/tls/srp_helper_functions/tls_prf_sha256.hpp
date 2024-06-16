@@ -9,7 +9,7 @@
 
 namespace utopia::portal::client_connection {
 
-std::optional<std::vector<std::uint8_t>>
+inline std::optional<std::vector<std::uint8_t>>
 tls_prf_sha256(const std::vector<uint8_t> &secret,
                const std::vector<uint8_t> &label,
                const std::vector<uint8_t> &seed, std::size_t output_size) {
