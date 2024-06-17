@@ -89,7 +89,7 @@ inline const auto send_tls_server_finished =
       // Compute the HMAC (bytes 16 to 35. Next 20 bytes)
       const auto calculated_hmac = tls_compute_handshake_finished_hmac(
           context.next_write_id, tls_server_finished_packet.serialize(),
-          msg_to_encrypt, context, context.mac_enc);
+          msg_to_encrypt, context, context.mac_enc, 0x10);
 
       if (!calculated_hmac) {
         spdlog::error("Failed to compute HMAC.");
@@ -121,6 +121,11 @@ inline const auto send_tls_server_finished =
             ClientConnectionEvent{TlsEvents::UnableToSendPacket{}});
         return;
       }
+
+      // Increment context.next_write_id by 1 (in big endian) to prepare for the
+      // next client message
+      common::be64_enc(context.next_write_id.data(),
+                       common::be64_dec(context.next_write_id.data()) + 1);
 
       event_queue->enqueue(
           ClientConnectionEvent{TlsEvents::SentServerFinishedPacket{}});

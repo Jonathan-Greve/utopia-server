@@ -42,7 +42,8 @@ inline const auto handle_tls_client_finished =
       mbedtls_sha256_update_ret(&context.checksum, decrypted_msg.data(), 0x10);
 
       const auto calculated_hmac = tls_compute_handshake_finished_hmac(
-          context.next_read_id, data, decrypted_msg, context, context.mac_dec);
+          context.next_read_id, data, decrypted_msg, context, context.mac_dec,
+          0x10);
 
       if (!calculated_hmac) {
         spdlog::error("Failed to compute HMAC.");
