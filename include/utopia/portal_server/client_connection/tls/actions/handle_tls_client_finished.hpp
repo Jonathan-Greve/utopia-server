@@ -5,7 +5,7 @@
 #include "utopia/portal_server/client_connection/events/client_connection_event.hpp"
 #include "utopia/portal_server/client_connection/events/client_connection_events.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_client_finished_packet.hpp"
-#include "utopia/portal_server/client_connection/tls/srp_helper_functions/tls_compute_handshake_finished_hmac.hpp"
+#include "utopia/portal_server/client_connection/tls/srp_helper_functions/tls_compute_hmac.hpp"
 #include "utopia/portal_server/client_connection/tls/tls_context.hpp"
 
 #include <asio.hpp>
@@ -43,9 +43,9 @@ inline const auto handle_tls_client_finished =
 
       const std::vector<std::uint8_t> decrypted_msg_no_hmac(
           decrypted_msg.begin(), decrypted_msg.begin() + 16);
-      const auto calculated_hmac = tls_compute_handshake_finished_hmac(
-          context.next_read_id, data, decrypted_msg_no_hmac, context,
-          context.mac_dec, 0x10);
+      const auto calculated_hmac =
+          tls_compute_hmac(context.next_read_id, data, decrypted_msg_no_hmac,
+                           context, context.mac_dec, 0x10);
 
       if (!calculated_hmac) {
         spdlog::error("Failed to compute HMAC.");
