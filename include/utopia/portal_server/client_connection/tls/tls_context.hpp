@@ -63,6 +63,8 @@ struct TlsContext {
 
   std::array<std::uint8_t, 12> client_finished{};
   std::array<std::uint8_t, 12> server_finished{};
+
+  bool handshake_complete{false};
 };
 
 } // namespace utopia::portal::client_connection
