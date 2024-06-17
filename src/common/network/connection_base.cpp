@@ -137,10 +137,11 @@ ConnectionBase::read_some(std::vector<std::uint8_t> &data) {
   if (ec) {
     if (ec == asio::error::eof || ec == asio::error::connection_reset) {
       spdlog::info("Client disconnected");
-      socket_.close();
     } else {
-      spdlog::error("Failed to receive data: {}", ec.message());
+      spdlog::error("Failed to receive data: {} (error code: {})", ec.message(),
+                    ec.value());
     }
+    socket_.close();
     return std::nullopt;
   }
 
