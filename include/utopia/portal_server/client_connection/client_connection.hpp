@@ -1,13 +1,17 @@
 #pragma once
 
 #include "utopia/common/network/connection_base.hpp"
+#include "utopia/portal_server/client_connection/events/client_connection_event.hpp"
 
 #include <asio.hpp>
 #include <boost/sml.hpp>
+#include <concurrentqueue.h>
 
 #include <string>
 
 namespace utopia::portal::client_connection {
+
+struct TlsContext;
 
 struct ClientConnectionStateMachine;
 struct ClientConnectionLogger;
@@ -22,7 +26,7 @@ private:
   asio::io_context &io_context_;
 
   template <typename PacketType, typename SM>
-  inline bool dispatch_sts_packet(std::vector<uint8_t> &data, SM &sm) {
+  inline bool process_tls_sts_packet(std::vector<uint8_t> &data, SM &sm) {
     PacketType packet(data);
     if (packet.is_valid()) {
       spdlog::debug("Packet size: {}", packet.get_packet_size());
@@ -41,8 +45,18 @@ private:
     return false;
   }
 
-  bool dispatch_sts_packets(
+  bool dispatch_sts_packet(
       std::vector<uint8_t> &data,
+      boost::sml::sm<ClientConnectionStateMachine,
+                     boost::sml::logger<ClientConnectionLogger>> &sm);
+
+  void dispatch_tls_sts_packet(
+      std::vector<std::uint8_t> &recv_buf, TlsContext &tls_context,
+      boost::sml::sm<ClientConnectionStateMachine,
+                     boost::sml::logger<ClientConnectionLogger>> &sm);
+
+  void process_event_queue(
+      moodycamel::ConcurrentQueue<ClientConnectionEvent> *event_queue,
       boost::sml::sm<ClientConnectionStateMachine,
                      boost::sml::logger<ClientConnectionLogger>> &sm);
 };
