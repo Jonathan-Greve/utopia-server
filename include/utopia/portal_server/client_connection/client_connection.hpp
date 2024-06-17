@@ -50,7 +50,7 @@ private:
       boost::sml::sm<ClientConnectionStateMachine,
                      boost::sml::logger<ClientConnectionLogger>> &sm);
 
-  void dispatch_tls_sts_packet(
+  bool dispatch_tls_sts_packet(
       std::vector<std::uint8_t> &recv_buf, TlsContext &tls_context,
       boost::sml::sm<ClientConnectionStateMachine,
                      boost::sml::logger<ClientConnectionLogger>> &sm);

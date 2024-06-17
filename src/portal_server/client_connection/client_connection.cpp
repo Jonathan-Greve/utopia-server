@@ -91,13 +91,10 @@ void ClientConnection::run() {
       continue;
     }
 
-    while (!recv_buf.empty()) {
-      if (recv_buf.size() >= 21 && recv_buf[0] == TLS_APPLICATION_DATA_TYPE &&
-          recv_buf[1] == 3 && recv_buf[2] == 3) {
-        dispatch_tls_sts_packet(recv_buf, tls_context, client_connection_sm);
-      } else {
-        dispatch_sts_packet(recv_buf, client_connection_sm);
-      }
+    while (!recv_buf.empty() &&
+           (dispatch_sts_packet(recv_buf, client_connection_sm) ||
+            dispatch_tls_sts_packet(recv_buf, tls_context,
+                                    client_connection_sm))) {
       process_event_queue(event_queue.get(), client_connection_sm);
     }
 
@@ -129,15 +126,24 @@ bool ClientConnection::dispatch_sts_packet(
   return false;
 }
 
-void ClientConnection::dispatch_tls_sts_packet(
+bool ClientConnection::dispatch_tls_sts_packet(
     std::vector<std::uint8_t> &recv_buf, TlsContext &tls_context,
     boost::sml::sm<ClientConnectionStateMachine,
                    boost::sml::logger<ClientConnectionLogger>> &sm) {
+
+  bool is_tls_application_data = recv_buf.size() >= 21 &&
+                                 recv_buf[0] == TLS_APPLICATION_DATA_TYPE &&
+                                 recv_buf[1] == 3 && recv_buf[2] == 3;
+
+  if (!is_tls_application_data) {
+    return false;
+  }
+
   auto decrypted_bytes = tls_decode(recv_buf, tls_context);
   if (!decrypted_bytes) {
     spdlog::error("Failed to decrypt TLS packet.");
     disconnect();
-    return;
+    return false;
   }
 
   // We need these 5 bytes to compute the HMAC.
@@ -151,72 +157,75 @@ void ClientConnection::dispatch_tls_sts_packet(
                   decrypted_bytes.value().end());
 
   std::uint32_t recv_buf_size = static_cast<std::uint32_t>(recv_buf.size());
-  if (dispatch_sts_packet(recv_buf, sm)) {
-    const auto processed_bytes =
-        recv_buf_size - static_cast<std::uint32_t>(recv_buf.size());
-    const auto decrypted_bytes_remaining =
-        static_cast<std::uint32_t>(decrypted_bytes.value().size()) -
-        processed_bytes;
-
-    // The next 20 bytes are the received HMAC bytes
-    if (decrypted_bytes_remaining < 20) {
-      spdlog::error("Not enough bytes for HMAC.");
-      disconnect();
-      return;
-    }
-
-    // Store the received HMAC
-    std::vector<std::uint8_t> hmac_bytes(
-        decrypted_bytes.value().begin() + processed_bytes,
-        decrypted_bytes.value().begin() + processed_bytes + 20);
-
-    // Compute the HMAC
-    mbedtls_md_hmac_reset(&tls_context.mac_dec);
-    if (mbedtls_md_hmac_update(&tls_context.mac_dec,
-                               tls_context.next_read_id.data(),
-                               tls_context.next_read_id.size())) {
-      spdlog::error("Failed to update HMAC context with next_read_id.");
-      disconnect();
-      return;
-    }
-
-    tls_header[4] = processed_bytes;
-    if (mbedtls_md_hmac_update(&tls_context.mac_dec, tls_header.data(),
-                               tls_header.size())) {
-      spdlog::error("Failed to update HMAC context with modified header.");
-      disconnect();
-      return;
-    }
-
-    std::span decrypted_msg_packet(decrypted_bytes.value().data(),
-                                   processed_bytes);
-    if (mbedtls_md_hmac_update(&tls_context.mac_dec,
-                               decrypted_msg_packet.data(),
-                               decrypted_msg_packet.size())) {
-      spdlog::error("Failed to update HMAC context with modified header.");
-      disconnect();
-      return;
-    }
-
-    std::array<std::uint8_t, 20> calculated_hmac;
-    if (mbedtls_md_hmac_finish(&tls_context.mac_dec, calculated_hmac.data())) {
-      spdlog::error("Failed to finish HMAC calculation.");
-      disconnect();
-      return;
-    }
-
-    // Validate the HMAC
-    if (!std::equal(hmac_bytes.begin(), hmac_bytes.end(),
-                    calculated_hmac.begin())) {
-      spdlog::error("HMAC validation failed.");
-      disconnect();
-      return;
-    }
-
-    // Remove the remaining decrypted bytes from the buffer
-    recv_buf.erase(recv_buf.begin(),
-                   recv_buf.begin() + decrypted_bytes_remaining);
+  if (!dispatch_sts_packet(recv_buf, sm)) {
+    return false;
   }
+
+  const auto processed_bytes =
+      recv_buf_size - static_cast<std::uint32_t>(recv_buf.size());
+  const auto decrypted_bytes_remaining =
+      static_cast<std::uint32_t>(decrypted_bytes.value().size()) -
+      processed_bytes;
+
+  // The next 20 bytes are the received HMAC bytes
+  if (decrypted_bytes_remaining < 20) {
+    spdlog::error("Not enough bytes for HMAC.");
+    disconnect();
+    return false;
+  }
+
+  // Store the received HMAC
+  std::vector<std::uint8_t> hmac_bytes(
+      decrypted_bytes.value().begin() + processed_bytes,
+      decrypted_bytes.value().begin() + processed_bytes + 20);
+
+  // Compute the HMAC
+  mbedtls_md_hmac_reset(&tls_context.mac_dec);
+  if (mbedtls_md_hmac_update(&tls_context.mac_dec,
+                             tls_context.next_read_id.data(),
+                             tls_context.next_read_id.size())) {
+    spdlog::error("Failed to update HMAC context with next_read_id.");
+    disconnect();
+    return false;
+  }
+
+  tls_header[4] = processed_bytes;
+  if (mbedtls_md_hmac_update(&tls_context.mac_dec, tls_header.data(),
+                             tls_header.size())) {
+    spdlog::error("Failed to update HMAC context with modified header.");
+    disconnect();
+    return false;
+  }
+
+  std::span decrypted_msg_packet(decrypted_bytes.value().data(),
+                                 processed_bytes);
+  if (mbedtls_md_hmac_update(&tls_context.mac_dec, decrypted_msg_packet.data(),
+                             decrypted_msg_packet.size())) {
+    spdlog::error("Failed to update HMAC context with modified header.");
+    disconnect();
+    return false;
+  }
+
+  std::array<std::uint8_t, 20> calculated_hmac;
+  if (mbedtls_md_hmac_finish(&tls_context.mac_dec, calculated_hmac.data())) {
+    spdlog::error("Failed to finish HMAC calculation.");
+    disconnect();
+    return false;
+  }
+
+  // Validate the HMAC
+  if (!std::equal(hmac_bytes.begin(), hmac_bytes.end(),
+                  calculated_hmac.begin())) {
+    spdlog::error("HMAC validation failed.");
+    disconnect();
+    return false;
+  }
+
+  // Remove the remaining decrypted bytes from the buffer
+  recv_buf.erase(recv_buf.begin(),
+                 recv_buf.begin() + decrypted_bytes_remaining);
+
+  return true;
 }
 
 void ClientConnection::process_event_queue(
