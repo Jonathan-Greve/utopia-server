@@ -41,9 +41,11 @@ inline const auto handle_tls_client_finished =
       // Update checksum with handshake message
       mbedtls_sha256_update_ret(&context.checksum, decrypted_msg.data(), 0x10);
 
+      const std::vector<std::uint8_t> decrypted_msg_no_hmac(
+          decrypted_msg.begin(), decrypted_msg.begin() + 16);
       const auto calculated_hmac = tls_compute_handshake_finished_hmac(
-          context.next_read_id, data, decrypted_msg, context, context.mac_dec,
-          0x10);
+          context.next_read_id, data, decrypted_msg_no_hmac, context,
+          context.mac_dec, 0x10);
 
       if (!calculated_hmac) {
         spdlog::error("Failed to compute HMAC.");

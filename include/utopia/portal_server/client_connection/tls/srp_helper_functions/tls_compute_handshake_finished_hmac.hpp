@@ -23,9 +23,7 @@ tls_compute_handshake_finished_hmac(
   mbedtls_md_hmac_update(&mac_ctx, sequence_number.data(),
                          sequence_number.size());
 
-  // The HMAC message was encrypted with the TlsClientFinishedPacket's size
-  // set to 0x10. I.e. the size of the packet without the encrypted message.
-  // So we set it to 0x10 before computing our HMAC.
+  // Make sure that the header uses the size of the message without HMAC.
   std::array<std::uint8_t, 5> modified_header;
   std::copy(header_data.begin(), header_data.begin() + 5,
             modified_header.begin());
@@ -37,8 +35,8 @@ tls_compute_handshake_finished_hmac(
     return std::nullopt;
   }
 
-  // Decrypted msg header (4bytes) + verify_data (12bytes)
-  if (mbedtls_md_hmac_update(&mac_ctx, decrypted_msg.data(), 16)) {
+  if (mbedtls_md_hmac_update(&mac_ctx, decrypted_msg.data(),
+                             decrypted_msg.size())) {
     spdlog::error("Failed to update HMAC context with modified header.");
     return std::nullopt;
   }
