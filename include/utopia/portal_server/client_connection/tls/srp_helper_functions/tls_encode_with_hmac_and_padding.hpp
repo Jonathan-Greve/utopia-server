@@ -44,31 +44,11 @@ tls_encode_with_hmac_and_padding(std::vector<uint8_t> &msg,
   msg_to_encrypt.insert(msg_to_encrypt.end(), calculated_hmac.value().begin(),
                         calculated_hmac.value().end());
 
-  // Write the padding with the modified PKCS7.
-  // We use AES, so the block size is 16, we pad to this value.
-  constexpr size_t aes_block_size = 16;
-
-  // We compute the next alignment size. If the buffer is already
-  // aligned, the aligned size will be the same as the size. This
-  // is incorrect, because it could be ambiguous whether there is
-  // a padding or not.
-  const size_t size = msg_to_encrypt.size();
-  size_t aligned = (size + (aes_block_size - 1)) & ~(aes_block_size - 1);
-
-  // When the buffer was already aligned, we simply pad it with
-  // an extra complete block.
-  if (size == aligned)
-    aligned = size + aes_block_size;
-
-  assert(size < aligned);
-  assert((aligned - size) <= aes_block_size);
-
-  // PKCS7 padding value should be the number of bytes padded, but
-  // portal use a custom one similar, but the padded value is the
-  // number of bytes - 1.
-  const auto pad_val = static_cast<uint8_t>(aligned - size - 1);
-
-  for (uint8_t i = 0; i < (pad_val + 1); ++i)
+  // Msg should be a multiple of 16. If it already is a multiple of 16, add 16
+  // bytes of padding anyway.
+  const auto num_pad_bytes = 16 - (msg_to_encrypt.size() % 16);
+  const auto pad_val = num_pad_bytes - 1;
+  for (uint8_t i = 0; i < num_pad_bytes; ++i)
     msg_to_encrypt.push_back(pad_val);
 
   std::vector<std::uint8_t> encrypted_msg(msg_to_encrypt.size());
