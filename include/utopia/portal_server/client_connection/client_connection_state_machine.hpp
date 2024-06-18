@@ -2,6 +2,7 @@
 #include "utopia/portal_server/client_connection/actions/handle_sts_connect_packet.hpp"
 #include "utopia/portal_server/client_connection/actions/handle_sts_ping_packet.hpp"
 #include "utopia/portal_server/client_connection/actions/handle_sts_start_tls_packet.hpp"
+#include "utopia/portal_server/client_connection/actions/send_sts_login_finish_reply_packet.hpp"
 #include "utopia/portal_server/client_connection/actions/send_sts_start_tls_reply_packet.hpp"
 #include "utopia/portal_server/client_connection/client_connection_states.hpp"
 #include "utopia/portal_server/client_connection/packets/sts/sts_connect_packet.hpp"
@@ -38,6 +39,7 @@ struct ClientConnectionStateMachine {
 
       , state<ClientConnectionStates::TlsHandshakeComplete> + event<StsLoginFinishPacket> = state<ClientConnectionStates::LoggedIn>
 
+      , state<ClientConnectionStates::LoggedIn> + on_entry<_> / send_login_finish_reply_packet 
       , state<ClientConnectionStates::LoggedIn> + event<StsPingPacket> = state<ClientConnectionStates::LoggedIn>
       
       , state<ClientConnectionStates::Stopping> = X
