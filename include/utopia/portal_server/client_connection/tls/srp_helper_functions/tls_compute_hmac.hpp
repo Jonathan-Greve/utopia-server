@@ -13,12 +13,16 @@
 
 namespace utopia::portal::client_connection {
 
+template <typename Range>
 inline std::optional<std::array<std::uint8_t, 20>>
 tls_compute_hmac(const std::array<std::uint8_t, 8> &sequence_number,
                  const std::vector<std::uint8_t> &header_data,
-                 const std::vector<std::uint8_t> &decrypted_msg,
-                 TlsContext &context, mbedtls_md_context_t mac_ctx,
-                 std::uint32_t msg_size) {
+                 const Range &decrypted_msg, TlsContext &context,
+                 mbedtls_md_context_t mac_ctx, std::uint32_t msg_size) {
+  // static_assert(std::ranges::contiguous_range<Range> &&
+  //                   std::ranges::sized_range<Range>,
+  //               "Range must be contiguous and sized");
+
   mbedtls_md_hmac_reset(&mac_ctx);
   mbedtls_md_hmac_update(&mac_ctx, sequence_number.data(),
                          sequence_number.size());

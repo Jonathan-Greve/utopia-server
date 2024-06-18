@@ -15,6 +15,7 @@
 #include "utopia/portal_server/client_connection/packets/tls/tls_client_finished_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_client_hello_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_client_key_exchange_packet.hpp"
+#include "utopia/portal_server/client_connection/tls/srp_helper_functions/tls_compute_hmac.hpp"
 #include "utopia/portal_server/client_connection/tls/srp_helper_functions/tls_decode.hpp"
 #include "utopia/portal_server/client_connection/tls/tls_context.hpp"
 
@@ -179,43 +180,16 @@ bool ClientConnection::dispatch_tls_sts_packet(
       decrypted_bytes.value().begin() + processed_bytes,
       decrypted_bytes.value().begin() + processed_bytes + 20);
 
-  // Compute the HMAC
-  mbedtls_md_hmac_reset(&tls_context.mac_dec);
-  if (mbedtls_md_hmac_update(&tls_context.mac_dec,
-                             tls_context.next_read_id.data(),
-                             tls_context.next_read_id.size())) {
-    spdlog::error("Failed to update HMAC context with next_read_id.");
-    disconnect();
-    return false;
-  }
-
-  tls_header[4] = processed_bytes;
-  if (mbedtls_md_hmac_update(&tls_context.mac_dec, tls_header.data(),
-                             tls_header.size())) {
-    spdlog::error("Failed to update HMAC context with modified header.");
-    disconnect();
-    return false;
-  }
-
   std::span decrypted_msg_packet(decrypted_bytes.value().data(),
                                  processed_bytes);
-  if (mbedtls_md_hmac_update(&tls_context.mac_dec, decrypted_msg_packet.data(),
-                             decrypted_msg_packet.size())) {
-    spdlog::error("Failed to update HMAC context with modified header.");
-    disconnect();
-    return false;
-  }
 
-  std::array<std::uint8_t, 20> calculated_hmac;
-  if (mbedtls_md_hmac_finish(&tls_context.mac_dec, calculated_hmac.data())) {
-    spdlog::error("Failed to finish HMAC calculation.");
-    disconnect();
-    return false;
-  }
+  const auto calculated_hmac = tls_compute_hmac(
+      tls_context.next_read_id, tls_header, decrypted_msg_packet, tls_context,
+      tls_context.mac_dec, processed_bytes);
 
   // Validate the HMAC
   if (!std::equal(hmac_bytes.begin(), hmac_bytes.end(),
-                  calculated_hmac.begin())) {
+                  calculated_hmac.value().begin())) {
     spdlog::error("HMAC validation failed.");
     disconnect();
     return false;
