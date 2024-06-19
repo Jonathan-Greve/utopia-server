@@ -200,10 +200,17 @@ bool ConnectionBase::is_connected() { return socket_.is_open(); }
 bool ConnectionBase::disconnect() {
   if (socket_.is_open()) {
     asio::error_code ec;
-    if (!socket_.shutdown(asio::ip::tcp::socket::shutdown_both, ec)) {
+
+    socket_.shutdown(asio::ip::tcp::socket::shutdown_both, ec);
+    if (ec) {
+      spdlog::debug("Failed to shutdown socket: {}, {}", ec.message(),
+                    ec.value());
       return false;
     }
-    if (!socket_.close(ec)) {
+
+    socket_.close(ec);
+    if (ec) {
+      spdlog::debug("Failed to close socket: {}, {}", ec.message(), ec.value());
       return false;
     }
   }
