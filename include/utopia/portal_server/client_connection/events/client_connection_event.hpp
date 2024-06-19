@@ -14,6 +14,7 @@ using ClientConnectionEvent = std::variant<
     ClientConnectionEvents::ReceivedValidStartTlsPacket,
     ClientConnectionEvents::SentStartTlsReplyPacket,
     ClientConnectionEvents::SentLoginFinishReplyPacket,
+    ClientConnectionEvents::SentListMyGameAccountsReplyPacket,
 
     TlsEvents::UnableToSendPacket, TlsEvents::SentServerHelloReply,
     TlsEvents::SentServerKeyExchangePacket,

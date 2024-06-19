@@ -2,10 +2,12 @@
 #include "utopia/portal_server/client_connection/actions/handle_sts_connect_packet.hpp"
 #include "utopia/portal_server/client_connection/actions/handle_sts_ping_packet.hpp"
 #include "utopia/portal_server/client_connection/actions/handle_sts_start_tls_packet.hpp"
+#include "utopia/portal_server/client_connection/actions/send_sts_list_my_game_accounts_reply_packet.hpp"
 #include "utopia/portal_server/client_connection/actions/send_sts_login_finish_reply_packet.hpp"
 #include "utopia/portal_server/client_connection/actions/send_sts_start_tls_reply_packet.hpp"
 #include "utopia/portal_server/client_connection/client_connection_states.hpp"
 #include "utopia/portal_server/client_connection/packets/sts/sts_connect_packet.hpp"
+#include "utopia/portal_server/client_connection/packets/sts/sts_list_my_game_accounts_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/sts/sts_login_finish_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/sts/sts_ping_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/sts/sts_start_tls_packet.hpp"
@@ -37,14 +39,20 @@ struct ClientConnectionStateMachine {
 
       , state<TlsStateMachine> + event<TlsEvents::HandshakeComplete> = state<ClientConnectionStates::TlsHandshakeComplete>
 
-      , state<ClientConnectionStates::TlsHandshakeComplete> + event<StsLoginFinishPacket> = state<ClientConnectionStates::LoggedIn>
+      , state<ClientConnectionStates::TlsHandshakeComplete> + event<StsLoginFinishPacket> = state<ClientConnectionStates::ReceivedLoginFinishPacket>
 
-      , state<ClientConnectionStates::LoggedIn> + on_entry<_> / send_login_finish_reply_packet 
-      , state<ClientConnectionStates::LoggedIn> + event<StsPingPacket> = state<ClientConnectionStates::LoggedIn>
+      , state<ClientConnectionStates::ReceivedLoginFinishPacket> + on_entry<_> / send_login_finish_reply_packet 
+      , state<ClientConnectionStates::ReceivedLoginFinishPacket> + event<ClientConnectionEvents::SentLoginFinishReplyPacket> = state<ClientConnectionStates::LoggedIn>
+
+      , state<ClientConnectionStates::LoggedIn> + event<StsListMyGameAccountsPacket> = state<ClientConnectionStates::ReceivedListMyGameAccountsPacket>
+
+      , state<ClientConnectionStates::ReceivedListMyGameAccountsPacket> + on_entry<_> / send_list_my_game_accounts_reply_packet
+      , state<ClientConnectionStates::ReceivedListMyGameAccountsPacket> + event<ClientConnectionEvents::SentListMyGameAccountsReplyPacket> = state<ClientConnectionStates::LoggedIn>
       
       , state<ClientConnectionStates::Stopping> = X
 
       , state<_> + event<StsPingPacket> / handle_sts_ping_packet 
+      , state<_> + event<ClientConnectionEvents::UnableToSendPacket> = X
     );
     // clang-format on
   }

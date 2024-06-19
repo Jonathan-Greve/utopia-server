@@ -11,6 +11,8 @@ struct ClientConnectionEvents {
   struct SentStartTlsReplyPacket {};
 
   struct SentLoginFinishReplyPacket {};
+
+  struct SentListMyGameAccountsReplyPacket {};
 };
 
 } // namespace utopia::portal::client_connection

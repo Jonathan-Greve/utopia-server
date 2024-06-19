@@ -8,6 +8,7 @@
 #include "utopia/portal_server/client_connection/client_connection_state_machine.hpp"
 #include "utopia/portal_server/client_connection/events/client_connection_event.hpp"
 #include "utopia/portal_server/client_connection/packets/sts/sts_connect_packet.hpp"
+#include "utopia/portal_server/client_connection/packets/sts/sts_list_my_game_accounts_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/sts/sts_login_finish_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/sts/sts_ping_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/sts/sts_start_tls_packet.hpp"
@@ -123,6 +124,8 @@ bool ClientConnection::dispatch_sts_packet(
     return true;
   if (process_tls_sts_packet<StsLoginFinishPacket>(data, sm))
     return true;
+  if (process_tls_sts_packet<StsListMyGameAccountsPacket>(data, sm))
+    return true;
 
   return false;
 }
@@ -186,6 +189,9 @@ bool ClientConnection::dispatch_tls_sts_packet(
   const auto calculated_hmac = tls_compute_hmac(
       tls_context.next_read_id, tls_header, decrypted_msg_packet, tls_context,
       tls_context.mac_dec, processed_bytes);
+
+  common::be64_enc(tls_context.next_read_id.data(),
+                   common::be64_dec(tls_context.next_read_id.data()) + 1);
 
   // Validate the HMAC
   if (!std::equal(hmac_bytes.begin(), hmac_bytes.end(),
