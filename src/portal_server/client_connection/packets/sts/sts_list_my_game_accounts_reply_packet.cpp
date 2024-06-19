@@ -78,7 +78,7 @@ StsListMyGameAccountsReplyPacket::StsListMyGameAccountsReplyPacket(
     return;
   }
 
-  const auto xml_content_game_code =
+  xml_content_game_code =
       connect_reply_row_node.child("GameCode").text().as_string();
 
   xml_content_alias = connect_reply_row_node.child("Alias").text().as_string();
