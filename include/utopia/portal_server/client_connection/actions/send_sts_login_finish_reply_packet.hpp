@@ -24,7 +24,7 @@ inline const auto send_login_finish_reply_packet =
       sts_login_finish_reply_packet.protocol_version_major = 1;
       sts_login_finish_reply_packet.protocol_version_minor = 0;
       sts_login_finish_reply_packet.conn_type = 200;
-      sts_login_finish_reply_packet.sequence_number = context.sequence_number;
+      sts_login_finish_reply_packet.sequence_number = context.sequence_number++;
       sts_login_finish_reply_packet.xml_content_user_id =
           common::GWUUID::generate();
       sts_login_finish_reply_packet.xml_content_user_center = 4;
@@ -52,6 +52,7 @@ inline const auto send_login_finish_reply_packet =
                         tls_context.iv_enc.end());
       tls_packet.insert(tls_packet.end(), encrypted_msg.value().begin(),
                         encrypted_msg.value().end());
+      common::be16_enc(tls_packet.data() + 3, tls_packet.size()-5);
 
       if (!client_connection.send(tls_packet)) {
         spdlog::error("Failed to send STS LoginFinish Reply packet.");

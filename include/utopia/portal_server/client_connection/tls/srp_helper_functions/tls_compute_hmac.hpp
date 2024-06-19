@@ -31,7 +31,7 @@ tls_compute_hmac(const std::array<std::uint8_t, 8> &sequence_number,
   std::array<std::uint8_t, 5> modified_header;
   std::copy(header_data.begin(), header_data.begin() + 5,
             modified_header.begin());
-  modified_header[4] = msg_size;
+  common::be16_enc(modified_header.data() + 3, msg_size);
 
   if (mbedtls_md_hmac_update(&mac_ctx, modified_header.data(),
                              modified_header.size())) {
