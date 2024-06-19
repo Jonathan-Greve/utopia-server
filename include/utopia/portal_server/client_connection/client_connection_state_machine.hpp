@@ -48,7 +48,7 @@ struct ClientConnectionStateMachine {
       , state<ClientConnectionStates::ReceivedLoginFinishPacket> + event<ClientConnectionEvents::SentLoginFinishReplyPacket> = state<ClientConnectionStates::LoggedIn>
 
       , state<ClientConnectionStates::LoggedIn> + event<StsListMyGameAccountsPacket> / send_list_my_game_accounts_reply_packet
-      , state<ClientConnectionStates::LoggedIn> + event<StsRequestGameTokenPacket> / send_request_game_token_reply_packet = state<ClientConnectionStates::Stopping>
+      , state<ClientConnectionStates::LoggedIn> + event<StsRequestGameTokenPacket> / send_request_game_token_reply_packet
       
       , state<ClientConnectionStates::Stopping> / disconnect = X
 
