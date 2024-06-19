@@ -35,28 +35,38 @@ StsStartTlsPacket::StsStartTlsPacket(
       scn::scan<std::uint32_t, std::uint32_t, std::uint32_t, std::uint32_t,
                 std::uint32_t>(data_str, scan_alternative_str);
 
-  if (!scan_result) {
-    if (!scan_alternative_result) {
-      spdlog::error("Failed to parse STS StartTls packet.");
-      is_valid_ = false;
-      return;
-    }
+  if (scan_result) {
+    auto &[scan_major, scan_minor, scan_sequence_number, scan_timeout,
+           scan_xml_size] = scan_result->values();
+    protocol_version_major = scan_major;
+    protocol_version_minor = scan_minor;
+    sequence_number = scan_sequence_number;
+    timeout_ms = scan_timeout;
+    xml_content_size = scan_xml_size;
+
+    xml_content_ = std::string(scan_result->range().begin() + header_end_size,
+                               scan_result->range().begin() + header_end_size +
+                                   xml_content_size);
+  } else if (scan_alternative_result) {
+    auto &[scan_major, scan_minor, scan_xml_size, scan_sequence_number,
+           scan_timeout] = scan_alternative_result->values();
+    protocol_version_major = scan_major;
+    protocol_version_minor = scan_minor;
+    sequence_number = scan_sequence_number;
+    timeout_ms = scan_timeout;
+    xml_content_size = scan_xml_size;
+
+    xml_content_ =
+        std::string(scan_alternative_result->range().begin() + header_end_size,
+                    scan_alternative_result->range().begin() + header_end_size +
+                        xml_content_size);
 
     alternative_scan_str_used = true;
-    scan_result = std::move(scan_alternative_result);
+  } else {
+    spdlog::error("Failed to parse STS StartTls packet.");
+    is_valid_ = false;
+    return;
   }
-
-  auto &[scan_major, scan_minor, scan_sequence_number, scan_timeout,
-         scan_xml_size] = scan_result->values();
-  protocol_version_major = scan_major;
-  protocol_version_minor = scan_minor;
-  sequence_number = scan_sequence_number;
-  timeout_ms = scan_timeout;
-  xml_content_size = scan_xml_size;
-
-  xml_content_ = std::string(scan_result->range().begin() + header_end_size,
-                             scan_result->range().begin() + header_end_size +
-                                 xml_content_size);
 
   if (xml_content_size != xml_content_.size()) {
     spdlog::error("XML content size does not match the expected size.");
@@ -82,8 +92,8 @@ std::vector<std::uint8_t> StsStartTlsPacket::serialize() noexcept {
   std::string packet_str;
   if (alternative_scan_str_used) {
     packet_str = fmt::format(scan_alternative_str, protocol_version_major,
-                             protocol_version_minor, sequence_number,
-                             timeout_ms, xml_content_size) +
+                             protocol_version_minor, xml_content_size,
+                             sequence_number, timeout_ms) +
                  "\r\n\r\n";
   } else {
     packet_str =

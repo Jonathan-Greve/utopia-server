@@ -1,4 +1,5 @@
 #pragma once
+#include "utopia/portal_server/client_connection/events/client_connection_events.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_change_cipher_spec_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_client_finished_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_client_hello_packet.hpp"
