@@ -5,6 +5,7 @@
 #include "utopia/portal_server/client_connection/actions/handle_sts_start_tls_packet.hpp"
 #include "utopia/portal_server/client_connection/actions/send_sts_list_my_game_accounts_reply_packet.hpp"
 #include "utopia/portal_server/client_connection/actions/send_sts_login_finish_reply_packet.hpp"
+#include "utopia/portal_server/client_connection/actions/send_sts_request_game_token_reply_packet.hpp"
 #include "utopia/portal_server/client_connection/actions/send_sts_start_tls_reply_packet.hpp"
 #include "utopia/portal_server/client_connection/client_connection_states.hpp"
 #include "utopia/portal_server/client_connection/packets/sts/sts_connect_packet.hpp"
@@ -47,7 +48,7 @@ struct ClientConnectionStateMachine {
       , state<ClientConnectionStates::ReceivedLoginFinishPacket> + event<ClientConnectionEvents::SentLoginFinishReplyPacket> = state<ClientConnectionStates::LoggedIn>
 
       , state<ClientConnectionStates::LoggedIn> + event<StsListMyGameAccountsPacket> / send_list_my_game_accounts_reply_packet
-      , state<ClientConnectionStates::LoggedIn> + event<StsRequestGameTokenPacket> = state<ClientConnectionStates::Stopping>
+      , state<ClientConnectionStates::LoggedIn> + event<StsRequestGameTokenPacket> / send_request_game_token_reply_packet = state<ClientConnectionStates::Stopping>
       
       , state<ClientConnectionStates::Stopping> / disconnect = X
 
