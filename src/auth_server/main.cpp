@@ -1,5 +1,6 @@
 #include "utopia/utopia_pch.hpp"
 
+#include "utopia/common/network/diffie_hellman_key.hpp"
 #include "utopia/portal_server/app/app.hpp"
 
 #include <argparse/argparse.hpp>
@@ -25,11 +26,20 @@ parse_arguments(argparse::ArgumentParser &arg_parser, const int argc,
       .default_value(default_port);
 
   arg_parser.add_argument("--auth_port")
-      .help("Auth server port that the portal server will connect to.")
-      .default_value(default_port + 1);
+      .help("Port to connect to")
+      .default_value(default_port);
   arg_parser.add_argument("--auth-host")
-      .help("Auth server hostname that the portal server will connect to.")
+      .help("User login password")
       .default_value(std::string{"localhost"});
+
+  constexpr std::uint32_t default_game_version = 37400;
+  arg_parser.add_argument("--key-path")
+      .help("Relative path to the Diffie-Hellman key file")
+      .default_value(
+          std::format("data/gw_key/gw_{}.pub", default_game_version));
+  arg_parser.add_argument("--game-version")
+      .help("Game version")
+      .default_value(default_game_version);
 
   try {
     arg_parser.parse_args(argc, argv);
@@ -92,9 +102,19 @@ int main(int argc, char *argv[]) {
 
   set_log_level(arg_parser);
 
+  const auto diffie_hellman_key =
+      utopia::common::DiffieHellmanKey::create_from_file(
+          arg_parser.get<std::string>("--key-path"));
+
+  spdlog::debug("Creating diffie hellman key.");
+  if (!diffie_hellman_key.has_value()) {
+    spdlog::error("Failed to create diffie_hellman_key. Check file path.");
+    std::exit(1);
+  }
+
   spdlog::info("Starting the login portal app.");
-  utopia::portal::app::App app(arg_parser);
-  app.run();
+  // utopia::auth::app::App app(arg_parser, diffie_hellman_key.value());
+  // app.run();
 
   spdlog::info("Exiting the program.");
   return 0;

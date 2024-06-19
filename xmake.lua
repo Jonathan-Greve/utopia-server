@@ -62,12 +62,13 @@ end
 
 add_common_requires()
 
-target("utopia-server")
+target("utopia-portal_server")
     set_kind("binary")
     set_pcxxheader("include/utopia/utopia_pch.hpp")
     set_warnings("all")
     add_common_packages()
-    add_files("src/**.cpp")
+    add_files("src/portal_server**.cpp")
+    add_files("src/common**.cpp")
     add_headerfiles("include/**.hpp")
     add_includedirs("include/")
     add_platform_specific_flags()
