@@ -17,6 +17,8 @@ namespace utopia::portal::client_connection {
 
 constexpr std::string_view scan_str =
     "P /Auth/StartTls STS/{}.{}\r\ns:{};timeout={}\r\nl:{}";
+constexpr std::string_view scan_alternative_str =
+    "P /Auth/StartTls STS/{}.{}\r\nl:{}\r\ns:{};timeout={}";
 
 // before xml_content_ we have "\r\n\r\n" that we wish to skip
 constexpr std::uint32_t header_end_size = 4;
@@ -29,10 +31,19 @@ StsStartTlsPacket::StsStartTlsPacket(
       scn::scan<std::uint32_t, std::uint32_t, std::uint32_t, std::uint32_t,
                 std::uint32_t>(data_str, scan_str);
 
+  auto scan_alternative_result =
+      scn::scan<std::uint32_t, std::uint32_t, std::uint32_t, std::uint32_t,
+                std::uint32_t>(data_str, scan_alternative_str);
+
   if (!scan_result) {
-    spdlog::error("Failed to parse STS StartTls packet.");
-    is_valid_ = false;
-    return;
+    if (!scan_alternative_result) {
+      spdlog::error("Failed to parse STS StartTls packet.");
+      is_valid_ = false;
+      return;
+    }
+
+    alternative_scan_str_used = true;
+    scan_result = std::move(scan_alternative_result);
   }
 
   auto &[scan_major, scan_minor, scan_sequence_number, scan_timeout,
@@ -68,11 +79,18 @@ std::uint32_t StsStartTlsPacket::get_packet_size() const noexcept {
 std::vector<std::uint8_t> StsStartTlsPacket::serialize() noexcept {
   xml_content_ = "";
   xml_content_size = 0;
-
-  std::string packet_str =
-      fmt::format(scan_str, protocol_version_major, protocol_version_minor,
-                  sequence_number, timeout_ms, xml_content_size) +
-      "\r\n\r\n";
+  std::string packet_str;
+  if (alternative_scan_str_used) {
+    packet_str = fmt::format(scan_alternative_str, protocol_version_major,
+                             protocol_version_minor, sequence_number,
+                             timeout_ms, xml_content_size) +
+                 "\r\n\r\n";
+  } else {
+    packet_str =
+        fmt::format(scan_str, protocol_version_major, protocol_version_minor,
+                    sequence_number, timeout_ms, xml_content_size) +
+        "\r\n\r\n";
+  }
 
   std::vector<std::uint8_t> packet(packet_str.begin(), packet_str.end());
 

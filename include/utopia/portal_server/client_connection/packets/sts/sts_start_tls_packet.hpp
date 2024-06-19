@@ -30,5 +30,8 @@ public:
 private:
   std::string xml_content_;
   bool is_valid_ = false;
+
+  // This packet uses two almost similar variants for its header.
+  bool alternative_scan_str_used = false;
 };
 } // namespace utopia::portal::client_connection
