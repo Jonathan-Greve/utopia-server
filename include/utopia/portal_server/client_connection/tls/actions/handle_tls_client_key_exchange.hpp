@@ -1,6 +1,5 @@
 #pragma once
 
-#include "utopia/common/strings/get_hex_string_from_bytes.hpp"
 #include "utopia/portal_server/client_connection/events/client_connection_event.hpp"
 #include "utopia/portal_server/client_connection/events/client_connection_events.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_client_key_exchange_packet.hpp"
@@ -28,9 +27,6 @@ inline const auto handle_tls_client_key_exchange =
       const auto data = event.serialize();
       std::vector<std::uint8_t> data_vec(data.begin() + 5, data.end());
       assert(data_vec.size() == event.size);
-      const auto data_hex = common::get_hex_string_from_bytes(data_vec);
-      spdlog::info("Checksum -> Num bytes written: {}. Bytes: {}", data_hex,
-                   data_vec.size());
       mbedtls_sha256_update_ret(&context.checksum, data_vec.data(), data_vec.size());
 
       context.client_public = event.public_key;

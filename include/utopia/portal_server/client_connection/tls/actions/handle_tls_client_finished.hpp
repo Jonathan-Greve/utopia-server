@@ -1,7 +1,6 @@
 #pragma once
 
 #include "utopia/common/network/endian/endian.hpp"
-#include "utopia/common/strings/get_hex_string_from_bytes.hpp"
 #include "utopia/portal_server/client_connection/events/client_connection_event.hpp"
 #include "utopia/portal_server/client_connection/events/client_connection_events.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_client_finished_packet.hpp"

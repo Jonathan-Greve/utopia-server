@@ -1,6 +1,5 @@
 #pragma once
 
-#include "utopia/common/strings/get_hex_string_from_bytes.hpp"
 #include "utopia/portal_server/client_connection/client_connection.hpp"
 #include "utopia/portal_server/client_connection/events/client_connection_event.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_server_hello_packet.hpp"
@@ -38,9 +37,6 @@ inline const auto send_tls_server_hello =
 
       const auto data = tls_server_hello_packet.serialize();
       std::vector<std::uint8_t> data_vec(data.begin() + 5, data.end());
-      const auto data_hex = common::get_hex_string_from_bytes(data_vec);
-      spdlog::info("Checksum -> Num bytes written: {}. Bytes: {}", data_hex,
-                   data_vec.size());
       mbedtls_sha256_update_ret(&context.checksum, data_vec.data(), data_vec.size());
 
       context.server_random = tls_server_hello_packet.random;
