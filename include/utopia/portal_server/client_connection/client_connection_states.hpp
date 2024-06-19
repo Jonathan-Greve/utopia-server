@@ -11,7 +11,6 @@ struct ClientConnectionStates {
   struct TlsHandshakeComplete {};
   struct ReceivedLoginFinishPacket {};
   struct LoggedIn {};
-  struct ReceivedListMyGameAccountsPacket {};
   struct Stopping {};
 };
 

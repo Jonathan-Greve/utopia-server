@@ -1,4 +1,5 @@
 #pragma once
+#include "utopia/portal_server/client_connection/actions/disconnect.hpp"
 #include "utopia/portal_server/client_connection/actions/handle_sts_connect_packet.hpp"
 #include "utopia/portal_server/client_connection/actions/handle_sts_ping_packet.hpp"
 #include "utopia/portal_server/client_connection/actions/handle_sts_start_tls_packet.hpp"
@@ -10,6 +11,7 @@
 #include "utopia/portal_server/client_connection/packets/sts/sts_list_my_game_accounts_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/sts/sts_login_finish_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/sts/sts_ping_packet.hpp"
+#include "utopia/portal_server/client_connection/packets/sts/sts_request_game_token_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/sts/sts_start_tls_packet.hpp"
 #include "utopia/portal_server/client_connection/tls/tls_state_machine.hpp"
 
@@ -44,12 +46,10 @@ struct ClientConnectionStateMachine {
       , state<ClientConnectionStates::ReceivedLoginFinishPacket> + on_entry<_> / send_login_finish_reply_packet 
       , state<ClientConnectionStates::ReceivedLoginFinishPacket> + event<ClientConnectionEvents::SentLoginFinishReplyPacket> = state<ClientConnectionStates::LoggedIn>
 
-      , state<ClientConnectionStates::LoggedIn> + event<StsListMyGameAccountsPacket> = state<ClientConnectionStates::ReceivedListMyGameAccountsPacket>
-
-      , state<ClientConnectionStates::ReceivedListMyGameAccountsPacket> + on_entry<_> / send_list_my_game_accounts_reply_packet
-      , state<ClientConnectionStates::ReceivedListMyGameAccountsPacket> + event<ClientConnectionEvents::SentListMyGameAccountsReplyPacket> = state<ClientConnectionStates::LoggedIn>
+      , state<ClientConnectionStates::LoggedIn> + event<StsListMyGameAccountsPacket> / send_list_my_game_accounts_reply_packet
+      , state<ClientConnectionStates::LoggedIn> + event<StsRequestGameTokenPacket> = state<ClientConnectionStates::Stopping>
       
-      , state<ClientConnectionStates::Stopping> = X
+      , state<ClientConnectionStates::Stopping> / disconnect = X
 
       , state<_> + event<StsPingPacket> / handle_sts_ping_packet 
       , state<_> + event<ClientConnectionEvents::UnableToSendPacket> = X

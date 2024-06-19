@@ -11,6 +11,7 @@
 #include "utopia/portal_server/client_connection/packets/sts/sts_list_my_game_accounts_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/sts/sts_login_finish_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/sts/sts_ping_packet.hpp"
+#include "utopia/portal_server/client_connection/packets/sts/sts_request_game_token_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/sts/sts_start_tls_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_change_cipher_spec_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_client_finished_packet.hpp"
@@ -102,6 +103,8 @@ void ClientConnection::run() {
 
     log_received_data(recv_buf, num_bytes_read.value());
   }
+
+  spdlog::debug("ClientConnection::Run() finished.");
 }
 
 bool ClientConnection::dispatch_sts_packet(
@@ -125,6 +128,8 @@ bool ClientConnection::dispatch_sts_packet(
   if (process_tls_sts_packet<StsLoginFinishPacket>(data, sm))
     return true;
   if (process_tls_sts_packet<StsListMyGameAccountsPacket>(data, sm))
+    return true;
+  if (process_tls_sts_packet<StsRequestGameTokenPacket>(data, sm))
     return true;
 
   return false;
