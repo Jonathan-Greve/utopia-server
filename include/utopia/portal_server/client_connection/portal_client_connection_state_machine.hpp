@@ -50,8 +50,6 @@ struct PortalClientConnectionStateMachine {
       , state<PortalClientConnectionStates::LoggedIn> + event<StsListMyGameAccountsPacket> / send_list_my_game_accounts_reply_packet
       , state<PortalClientConnectionStates::LoggedIn> + event<StsRequestGameTokenPacket> / send_request_game_token_reply_packet
       
-      , state<PortalClientConnectionStates::Stopping> = X
-
       , state<_> + event<StsPingPacket> / handle_sts_ping_packet 
       , state<_> + event<PortalClientConnectionEvents::UnableToSendPacket> = X
     );

@@ -11,7 +11,6 @@ struct PortalClientConnectionStates {
   struct TlsHandshakeComplete {};
   struct ReceivedLoginFinishPacket {};
   struct LoggedIn {};
-  struct Stopping {};
 };
 
 } // namespace utopia::portal::client_connection
