@@ -87,9 +87,13 @@ void PortalClientConnection::run() {
 
   std::vector<std::uint8_t> recv_buf;
 
-  spdlog::info("Running client connection.");
-  while (is_connected()) {
+  auto is_sm_running = [&client_connection_sm] {
+    return !client_connection_sm.is(sml::X) &&
+           !client_connection_sm.is<decltype(state<TlsStateMachine>)>(X);
+  };
 
+  spdlog::info("Running client connection.");
+  while (is_connected() && is_sm_running()) {
     auto num_bytes_read = read_some(recv_buf);
     if (!num_bytes_read) {
       continue;
@@ -104,6 +108,10 @@ void PortalClientConnection::run() {
 
     log_received_data(recv_buf, num_bytes_read.value());
   }
+
+  // In case we are still connected, we need to disconnect.
+  // I we are already disconnected, this does nothing.
+  disconnect();
 
   spdlog::debug("PortalClientConnection::Run() finished.");
 }
