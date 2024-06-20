@@ -1,7 +1,7 @@
 #pragma once
 
 #include "utopia/common/network/connection_base.hpp"
-#include "utopia/portal_server/client_connection/events/client_connection_event.hpp"
+#include "utopia/portal_server/client_connection/events/portal_client_connection_event.hpp"
 
 #include <asio.hpp>
 #include <boost/sml.hpp>
@@ -13,12 +13,12 @@ namespace utopia::portal::client_connection {
 
 struct TlsContext;
 
-struct ClientConnectionStateMachine;
-struct ClientConnectionLogger;
+struct PortalClientConnectionStateMachine;
+struct PortalClientConnectionLogger;
 
-class ClientConnection : public common::ConnectionBase {
+class PortalClientConnection : public common::ConnectionBase {
 public:
-  ClientConnection(asio::io_context &io_context, unsigned short port);
+  PortalClientConnection(asio::io_context &io_context, unsigned short port);
 
   void run();
 
@@ -47,18 +47,18 @@ private:
 
   bool dispatch_sts_packet(
       std::vector<uint8_t> &data,
-      boost::sml::sm<ClientConnectionStateMachine,
-                     boost::sml::logger<ClientConnectionLogger>> &sm);
+      boost::sml::sm<PortalClientConnectionStateMachine,
+                     boost::sml::logger<PortalClientConnectionLogger>> &sm);
 
   bool dispatch_tls_sts_packet(
       std::vector<std::uint8_t> &recv_buf, TlsContext &tls_context,
-      boost::sml::sm<ClientConnectionStateMachine,
-                     boost::sml::logger<ClientConnectionLogger>> &sm);
+      boost::sml::sm<PortalClientConnectionStateMachine,
+                     boost::sml::logger<PortalClientConnectionLogger>> &sm);
 
   void process_event_queue(
-      moodycamel::ConcurrentQueue<ClientConnectionEvent> *event_queue,
-      boost::sml::sm<ClientConnectionStateMachine,
-                     boost::sml::logger<ClientConnectionLogger>> &sm);
+      moodycamel::ConcurrentQueue<PortalClientConnectionEvent> *event_queue,
+      boost::sml::sm<PortalClientConnectionStateMachine,
+                     boost::sml::logger<PortalClientConnectionLogger>> &sm);
 };
 
 } // namespace utopia::portal::client_connection

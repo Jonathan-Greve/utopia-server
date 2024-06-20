@@ -1,7 +1,7 @@
 #pragma once
 
-#include "utopia/portal_server/client_connection/events/client_connection_event.hpp"
-#include "utopia/portal_server/client_connection/events/client_connection_events.hpp"
+#include "utopia/portal_server/client_connection/events/portal_client_connection_event.hpp"
+#include "utopia/portal_server/client_connection/events/portal_client_connection_events.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_client_key_exchange_packet.hpp"
 #include "utopia/portal_server/client_connection/tls/srp_helper_functions/concat.hpp"
 #include "utopia/portal_server/client_connection/tls/srp_helper_functions/pad.hpp"
@@ -22,12 +22,13 @@
 namespace utopia::portal::client_connection {
 
 inline const auto handle_tls_client_key_exchange =
-    [](moodycamel::ConcurrentQueue<ClientConnectionEvent> *event_queue,
+    [](moodycamel::ConcurrentQueue<PortalClientConnectionEvent> *event_queue,
        TlsClientKeyExchangePacket event, TlsContext &context) {
       const auto data = event.serialize();
       std::vector<std::uint8_t> data_vec(data.begin() + 5, data.end());
       assert(data_vec.size() == event.size);
-      mbedtls_sha256_update_ret(&context.checksum, data_vec.data(), data_vec.size());
+      mbedtls_sha256_update_ret(&context.checksum, data_vec.data(),
+                                data_vec.size());
 
       context.client_public = event.public_key;
 

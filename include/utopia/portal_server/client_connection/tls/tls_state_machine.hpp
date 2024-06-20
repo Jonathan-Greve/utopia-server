@@ -1,5 +1,5 @@
 #pragma once
-#include "utopia/portal_server/client_connection/events/client_connection_events.hpp"
+#include "utopia/portal_server/client_connection/events/portal_client_connection_events.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_change_cipher_spec_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_client_finished_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_client_hello_packet.hpp"
@@ -65,7 +65,7 @@ struct TlsStateMachine {
       , state<TlsStates::SentCipherChangeSpec> + event<TlsEvents::HmacComputationFailed> = X
       , state<TlsStates::SentCipherChangeSpec> + event<TlsEvents::UnableToSendPacket> = X
 
-      // This will take us back to the ClientConnectionStateMachine
+      // This will take us back to the PortalClientConnectionStateMachine
       , state<TlsStates::SentServerFinished> + on_entry<_> / enqueue_handshake_complete_event 
     );
     // clang-format on

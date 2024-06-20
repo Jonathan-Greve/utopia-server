@@ -1,6 +1,6 @@
 #pragma once
 
-#include "utopia/portal_server/client_connection/events/client_connection_events.hpp"
+#include "utopia/portal_server/client_connection/events/portal_client_connection_events.hpp"
 #include "utopia/portal_server/client_connection/packets/sts/sts_connect_packet.hpp"
 #include "utopia/portal_server/client_connection/tls/events/tls_events.hpp"
 
@@ -8,14 +8,14 @@
 
 namespace utopia::portal::client_connection {
 
-using ClientConnectionEvent = std::variant<
-    ClientConnectionEvents::UnableToSendPacket,
-    ClientConnectionEvents::ReceivedValidConnectPacket,
-    ClientConnectionEvents::ReceivedValidStartTlsPacket,
-    ClientConnectionEvents::SentStartTlsReplyPacket,
-    ClientConnectionEvents::SentLoginFinishReplyPacket,
-    ClientConnectionEvents::SentListMyGameAccountsReplyPacket,
-    ClientConnectionEvents::SentRequestGameTokenReplyPacket,
+using PortalClientConnectionEvent = std::variant<
+    PortalClientConnectionEvents::UnableToSendPacket,
+    PortalClientConnectionEvents::ReceivedValidConnectPacket,
+    PortalClientConnectionEvents::ReceivedValidStartTlsPacket,
+    PortalClientConnectionEvents::SentStartTlsReplyPacket,
+    PortalClientConnectionEvents::SentLoginFinishReplyPacket,
+    PortalClientConnectionEvents::SentListMyGameAccountsReplyPacket,
+    PortalClientConnectionEvents::SentRequestGameTokenReplyPacket,
 
     TlsEvents::UnableToSendPacket, TlsEvents::SentServerHelloReply,
     TlsEvents::SentServerKeyExchangePacket,

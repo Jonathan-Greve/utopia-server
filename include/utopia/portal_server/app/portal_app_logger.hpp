@@ -2,17 +2,16 @@
 
 #include "utopia/common/sml/logging/get_last_2_parts.hpp"
 #include "utopia/common/sml/logging/state_transition_log_entry.hpp"
-#include "utopia/portal_server/app/app_context.hpp"
+#include "utopia/portal_server/app/portal_app_context.hpp"
 
 #include <boost/sml.hpp>
-
 
 namespace sml = boost::sml;
 
 namespace utopia::portal::app {
 
-struct AppLogger {
-  AppLogger(AppContext &context) : context(context) {}
+struct PortalAppLogger {
+  PortalAppLogger(PortalAppContext &context) : context(context) {}
 
   template <class SM, class TEvent>
   inline void log_process_event(const TEvent &) {
@@ -57,6 +56,6 @@ struct AppLogger {
   }
 
 private:
-  AppContext &context;
+  PortalAppContext &context;
 };
 } // namespace utopia::portal::app

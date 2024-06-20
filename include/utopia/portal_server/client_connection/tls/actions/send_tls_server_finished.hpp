@@ -1,9 +1,9 @@
 #pragma once
 
 #include "utopia/common/network/endian/endian.hpp"
-#include "utopia/portal_server/client_connection/client_connection.hpp"
-#include "utopia/portal_server/client_connection/events/client_connection_event.hpp"
+#include "utopia/portal_server/client_connection/events/portal_client_connection_event.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_server_finished_packet.hpp"
+#include "utopia/portal_server/client_connection/portal_client_connection.hpp"
 #include "utopia/portal_server/client_connection/tls/events/tls_events.hpp"
 #include "utopia/portal_server/client_connection/tls/srp_helper_functions/tls_encode_with_hmac_and_padding.hpp"
 #include "utopia/portal_server/client_connection/tls/tls_context.hpp"
@@ -21,8 +21,8 @@ namespace utopia::portal::client_connection {
 
 inline const auto send_tls_server_finished =
     [](asio::io_context &io,
-       moodycamel::ConcurrentQueue<ClientConnectionEvent> *event_queue,
-       ClientConnection &client_connection, TlsContext &context) {
+       moodycamel::ConcurrentQueue<PortalClientConnectionEvent> *event_queue,
+       PortalClientConnection &client_connection, TlsContext &context) {
       // Send packet using default values
       TlsServerFinishedPacket tls_server_finished_packet;
 
@@ -42,7 +42,7 @@ inline const auto send_tls_server_finished =
       if (ret) {
         spdlog::error("Failed to finish checksum");
         event_queue->enqueue(
-            ClientConnectionEvent{TlsEvents::UnableToSendPacket{}});
+            PortalClientConnectionEvent{TlsEvents::UnableToSendPacket{}});
         return;
       }
 
@@ -53,7 +53,7 @@ inline const auto send_tls_server_finished =
       if (!server_finished_opt) {
         spdlog::error("Failed to compute server finished data");
         event_queue->enqueue(
-            ClientConnectionEvent{TlsEvents::UnableToSendPacket{}});
+            PortalClientConnectionEvent{TlsEvents::UnableToSendPacket{}});
         return;
       }
 
@@ -81,7 +81,7 @@ inline const auto send_tls_server_finished =
       if (!encrypted_msg) {
         spdlog::error("Failed to encrypt message.");
         event_queue->enqueue(
-            ClientConnectionEvent{TlsEvents::UnableToSendPacket{}});
+            PortalClientConnectionEvent{TlsEvents::UnableToSendPacket{}});
         return;
       }
 
@@ -94,12 +94,12 @@ inline const auto send_tls_server_finished =
       if (!client_connection.send(tls_server_finished_packet.serialize())) {
         spdlog::error("Failed to send STS Connect Reply packet.");
         event_queue->enqueue(
-            ClientConnectionEvent{TlsEvents::UnableToSendPacket{}});
+            PortalClientConnectionEvent{TlsEvents::UnableToSendPacket{}});
         return;
       }
 
       event_queue->enqueue(
-          ClientConnectionEvent{TlsEvents::SentServerFinishedPacket{}});
+          PortalClientConnectionEvent{TlsEvents::SentServerFinishedPacket{}});
 
       spdlog::debug("Sent TLS Server Finished.");
     };

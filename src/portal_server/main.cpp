@@ -1,6 +1,6 @@
 #include "utopia/utopia_pch.hpp"
 
-#include "utopia/portal_server/app/app.hpp"
+#include "utopia/portal_server/app/portal_app.hpp"
 
 #include <argparse/argparse.hpp>
 #include <spdlog/sinks/basic_file_sink.h>
@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
   set_log_level(arg_parser);
 
   spdlog::info("Starting the login portal app.");
-  utopia::portal::app::App app(arg_parser);
+  utopia::portal::app::PortalApp app(arg_parser);
   app.run();
 
   spdlog::info("Exiting the program.");

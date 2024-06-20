@@ -1,12 +1,9 @@
 #include "utopia/utopia_pch.hpp"
 
-#include "utopia/portal_server/client_connection/client_connection.hpp"
+#include "utopia/portal_server/client_connection/portal_client_connection.hpp"
 
 #include "utopia/common/network/connection_base.hpp"
-#include "utopia/portal_server/client_connection/client_connection_context.hpp"
-#include "utopia/portal_server/client_connection/client_connection_logger.hpp"
-#include "utopia/portal_server/client_connection/client_connection_state_machine.hpp"
-#include "utopia/portal_server/client_connection/events/client_connection_event.hpp"
+#include "utopia/portal_server/client_connection/events/portal_client_connection_event.hpp"
 #include "utopia/portal_server/client_connection/packets/sts/sts_connect_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/sts/sts_list_my_game_accounts_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/sts/sts_login_finish_packet.hpp"
@@ -17,6 +14,9 @@
 #include "utopia/portal_server/client_connection/packets/tls/tls_client_finished_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_client_hello_packet.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_client_key_exchange_packet.hpp"
+#include "utopia/portal_server/client_connection/portal_client_connection_context.hpp"
+#include "utopia/portal_server/client_connection/portal_client_connection_logger.hpp"
+#include "utopia/portal_server/client_connection/portal_client_connection_state_machine.hpp"
 #include "utopia/portal_server/client_connection/tls/srp_helper_functions/tls_compute_hmac.hpp"
 #include "utopia/portal_server/client_connection/tls/srp_helper_functions/tls_decode.hpp"
 #include "utopia/portal_server/client_connection/tls/tls_context.hpp"
@@ -58,25 +58,26 @@ void log_received_data(const std::vector<std::uint8_t> &recv_buf,
 
 namespace utopia::portal::client_connection {
 
-ClientConnection::ClientConnection(asio::io_context &io_context,
-                                   unsigned short port)
+PortalClientConnection::PortalClientConnection(asio::io_context &io_context,
+                                               unsigned short port)
     : ConnectionBase(io_context), io_context_(io_context) {
   if (accept_connection(port)) {
     spdlog::info("Accepted incoming connection on port {}", port);
   }
 }
 
-void ClientConnection::run() {
+void PortalClientConnection::run() {
   using namespace boost::sml;
-  auto event_queue =
-      std::make_unique<moodycamel::ConcurrentQueue<ClientConnectionEvent>>();
+  auto event_queue = std::make_unique<
+      moodycamel::ConcurrentQueue<PortalClientConnectionEvent>>();
 
-  ClientConnectionContext client_connection_sm_context{};
+  PortalClientConnectionContext client_connection_sm_context{};
   TlsContext tls_context{};
 
-  ClientConnectionLogger client_connection_logger{client_connection_sm_context};
+  PortalClientConnectionLogger client_connection_logger{
+      client_connection_sm_context};
 
-  sm<ClientConnectionStateMachine, logger<ClientConnectionLogger>>
+  sm<PortalClientConnectionStateMachine, logger<PortalClientConnectionLogger>>
       client_connection_sm{*this,
                            io_context_,
                            client_connection_sm_context,
@@ -104,13 +105,13 @@ void ClientConnection::run() {
     log_received_data(recv_buf, num_bytes_read.value());
   }
 
-  spdlog::debug("ClientConnection::Run() finished.");
+  spdlog::debug("PortalClientConnection::Run() finished.");
 }
 
-bool ClientConnection::dispatch_sts_packet(
+bool PortalClientConnection::dispatch_sts_packet(
     std::vector<std::uint8_t> &data,
-    boost::sml::sm<ClientConnectionStateMachine,
-                   boost::sml::logger<ClientConnectionLogger>> &sm) {
+    boost::sml::sm<PortalClientConnectionStateMachine,
+                   boost::sml::logger<PortalClientConnectionLogger>> &sm) {
   if (process_tls_sts_packet<StsConnectPacket>(data, sm))
     return true;
   if (process_tls_sts_packet<StsPingPacket>(data, sm))
@@ -135,10 +136,10 @@ bool ClientConnection::dispatch_sts_packet(
   return false;
 }
 
-bool ClientConnection::dispatch_tls_sts_packet(
+bool PortalClientConnection::dispatch_tls_sts_packet(
     std::vector<std::uint8_t> &recv_buf, TlsContext &tls_context,
-    boost::sml::sm<ClientConnectionStateMachine,
-                   boost::sml::logger<ClientConnectionLogger>> &sm) {
+    boost::sml::sm<PortalClientConnectionStateMachine,
+                   boost::sml::logger<PortalClientConnectionLogger>> &sm) {
 
   bool is_tls_application_data = recv_buf.size() >= 21 &&
                                  recv_buf[0] == TLS_APPLICATION_DATA_TYPE &&
@@ -213,11 +214,11 @@ bool ClientConnection::dispatch_tls_sts_packet(
   return true;
 }
 
-void ClientConnection::process_event_queue(
-    moodycamel::ConcurrentQueue<ClientConnectionEvent> *event_queue,
-    boost::sml::sm<ClientConnectionStateMachine,
-                   boost::sml::logger<ClientConnectionLogger>> &sm) {
-  ClientConnectionEvent event;
+void PortalClientConnection::process_event_queue(
+    moodycamel::ConcurrentQueue<PortalClientConnectionEvent> *event_queue,
+    boost::sml::sm<PortalClientConnectionStateMachine,
+                   boost::sml::logger<PortalClientConnectionLogger>> &sm) {
+  PortalClientConnectionEvent event;
   while (event_queue->try_dequeue(event)) {
     std::visit([&](auto &&x) { sm.process_event(x); }, event);
   }

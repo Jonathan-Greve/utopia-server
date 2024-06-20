@@ -1,6 +1,6 @@
 #pragma once
 
-#include "utopia/portal_server/app/app_context.hpp"
+#include "utopia/portal_server/app/portal_app_context.hpp"
 
 #include <cstdint>
 
@@ -18,15 +18,15 @@ class DiffieHellmanKey;
 
 namespace utopia::portal::app {
 
-class App {
+class PortalApp {
 public:
-  App() = delete;
-  App(const argparse::ArgumentParser &arg_parser) noexcept;
+  PortalApp() = delete;
+  PortalApp(const argparse::ArgumentParser &arg_parser) noexcept;
 
-  App(const App &) = delete;
-  App &operator=(const App &) = delete;
+  PortalApp(const PortalApp &) = delete;
+  PortalApp &operator=(const PortalApp &) = delete;
 
-  ~App();
+  ~PortalApp();
 
   void run() noexcept;
 

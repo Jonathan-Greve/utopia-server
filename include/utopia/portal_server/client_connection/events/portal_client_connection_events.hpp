@@ -2,7 +2,7 @@
 
 namespace utopia::portal::client_connection {
 
-struct ClientConnectionEvents {
+struct PortalClientConnectionEvents {
   struct UnableToSendPacket {};
 
   struct ReceivedValidConnectPacket {};

@@ -2,7 +2,7 @@
 
 #include "utopia/common/sml/logging/get_last_2_parts.hpp"
 #include "utopia/common/sml/logging/state_transition_log_entry.hpp"
-#include "utopia/portal_server/client_connection/client_connection_context.hpp"
+#include "utopia/portal_server/client_connection/portal_client_connection_context.hpp"
 
 #include <boost/sml.hpp>
 
@@ -12,8 +12,8 @@ namespace sml = boost::sml;
 
 namespace utopia::portal::client_connection {
 
-struct ClientConnectionLogger {
-  explicit ClientConnectionLogger(ClientConnectionContext &context)
+struct PortalClientConnectionLogger {
+  explicit PortalClientConnectionLogger(PortalClientConnectionContext &context)
       : context(context) {}
 
   template <class SM, class TEvent>
@@ -61,6 +61,6 @@ struct ClientConnectionLogger {
   }
 
 private:
-  ClientConnectionContext &context;
+  PortalClientConnectionContext &context;
 };
 } // namespace utopia::portal::client_connection

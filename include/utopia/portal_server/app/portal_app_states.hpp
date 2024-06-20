@@ -2,7 +2,7 @@
 
 namespace utopia::portal::app {
 
-struct AppStates {
+struct PortalAppStates {
   struct Initializing {};
   struct Running {};
   struct Stopping {};

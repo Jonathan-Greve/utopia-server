@@ -2,7 +2,7 @@
 
 namespace utopia::portal::client_connection {
 
-struct ClientConnectionStates {
+struct PortalClientConnectionStates {
   struct Connected {};
   struct WaitingForClientConnectMsg {};
   struct ReceivedConnectPacket {};

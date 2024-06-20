@@ -1,7 +1,6 @@
 #include "utopia/utopia_pch.hpp"
 
 #include "utopia/common/network/diffie_hellman_key.hpp"
-#include "utopia/portal_server/app/app.hpp"
 
 #include <argparse/argparse.hpp>
 #include <spdlog/sinks/basic_file_sink.h>
@@ -113,7 +112,7 @@ int main(int argc, char *argv[]) {
   }
 
   spdlog::info("Starting the login portal app.");
-  // utopia::auth::app::App app(arg_parser, diffie_hellman_key.value());
+  // utopia::auth::app::PortalApp app(arg_parser, diffie_hellman_key.value());
   // app.run();
 
   spdlog::info("Exiting the program.");

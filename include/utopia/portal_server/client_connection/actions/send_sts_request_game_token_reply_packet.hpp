@@ -2,11 +2,11 @@
 
 #include "utopia/common/network/endian/endian.hpp"
 #include "utopia/common/network/gwuuid.hpp"
-#include "utopia/portal_server/client_connection/client_connection.hpp"
-#include "utopia/portal_server/client_connection/client_connection_context.hpp"
-#include "utopia/portal_server/client_connection/events/client_connection_event.hpp"
-#include "utopia/portal_server/client_connection/events/client_connection_events.hpp"
+#include "utopia/portal_server/client_connection/events/portal_client_connection_event.hpp"
+#include "utopia/portal_server/client_connection/events/portal_client_connection_events.hpp"
 #include "utopia/portal_server/client_connection/packets/sts/sts_request_game_token_reply_packet.hpp"
+#include "utopia/portal_server/client_connection/portal_client_connection.hpp"
+#include "utopia/portal_server/client_connection/portal_client_connection_context.hpp"
 #include "utopia/portal_server/client_connection/tls/srp_helper_functions/tls_encode_with_hmac_and_padding.hpp"
 #include "utopia/portal_server/client_connection/tls/tls_context.hpp"
 
@@ -18,9 +18,9 @@ namespace utopia::portal::client_connection {
 
 inline const auto send_request_game_token_reply_packet =
     [](asio::io_context &io,
-       moodycamel::ConcurrentQueue<ClientConnectionEvent> *event_queue,
-       ClientConnection &client_connection, ClientConnectionContext &context,
-       TlsContext &tls_context) {
+       moodycamel::ConcurrentQueue<PortalClientConnectionEvent> *event_queue,
+       PortalClientConnection &client_connection,
+       PortalClientConnectionContext &context, TlsContext &tls_context) {
       StsRequestGameTokenReplyPacket sts_request_game_token_reply_packet;
       sts_request_game_token_reply_packet.protocol_version_major = 1;
       sts_request_game_token_reply_packet.protocol_version_minor = 0;
@@ -40,8 +40,8 @@ inline const auto send_request_game_token_reply_packet =
 
       if (!encrypted_msg) {
         spdlog::error("Failed to encrypt message.");
-        event_queue->enqueue(ClientConnectionEvent{
-            ClientConnectionEvents::UnableToSendPacket{}});
+        event_queue->enqueue(PortalClientConnectionEvent{
+            PortalClientConnectionEvents::UnableToSendPacket{}});
         return;
       }
 
@@ -54,14 +54,14 @@ inline const auto send_request_game_token_reply_packet =
 
       if (!client_connection.send(tls_packet)) {
         spdlog::error("Failed to send STS RequestGameToken Reply packet.");
-        event_queue->enqueue(ClientConnectionEvent{
-            ClientConnectionEvents::UnableToSendPacket{}});
+        event_queue->enqueue(PortalClientConnectionEvent{
+            PortalClientConnectionEvents::UnableToSendPacket{}});
         return;
       }
 
       spdlog::debug("Sent STS RequestGameToken Reply packet.");
-      event_queue->enqueue(ClientConnectionEvent{
-          ClientConnectionEvents::SentRequestGameTokenReplyPacket{}});
+      event_queue->enqueue(PortalClientConnectionEvent{
+          PortalClientConnectionEvents::SentRequestGameTokenReplyPacket{}});
     };
 
 } // namespace utopia::portal::client_connection

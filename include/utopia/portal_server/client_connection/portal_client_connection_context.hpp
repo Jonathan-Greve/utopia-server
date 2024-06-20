@@ -8,7 +8,7 @@
 
 namespace utopia::portal::client_connection {
 
-struct ClientConnectionContext {
+struct PortalClientConnectionContext {
   boost::circular_buffer<common::StateTransitionLogEntry> state_log{100};
 
   std::uint32_t sequence_number = 1;

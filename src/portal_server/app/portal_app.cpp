@@ -1,12 +1,12 @@
 #include "utopia/utopia_pch.hpp"
 
-#include "utopia/portal_server/app/app.hpp"
+#include "utopia/portal_server/app/portal_app.hpp"
 
 #include "utopia/common/network/connection_manager.hpp"
-#include "utopia/portal_server/app/app_context.hpp"
-#include "utopia/portal_server/app/app_logger.hpp"
-#include "utopia/portal_server/app/app_state_machine.hpp"
-#include "utopia/portal_server/app/events/app_event.hpp"
+#include "utopia/portal_server/app/events/portal_app_event.hpp"
+#include "utopia/portal_server/app/portal_app_context.hpp"
+#include "utopia/portal_server/app/portal_app_logger.hpp"
+#include "utopia/portal_server/app/portal_app_state_machine.hpp"
 
 #include <argparse/argparse.hpp>
 #include <asio.hpp>
@@ -31,7 +31,7 @@ volatile bool sigint_received = false;
 // Signal handler function
 void sig_int_handler(int signal) { sigint_received = true; }
 
-App::App(const argparse::ArgumentParser &arg_parser) noexcept
+PortalApp::PortalApp(const argparse::ArgumentParser &arg_parser) noexcept
     : port_(arg_parser.get<std::uint32_t>("--port")),
       auth_host_(arg_parser.get<std::string>("--auth-host")),
       auth_port_(arg_parser.get<std::uint32_t>("--auth_port")) {
@@ -42,20 +42,21 @@ App::App(const argparse::ArgumentParser &arg_parser) noexcept
   std::signal(SIGINT, sig_int_handler);
 }
 
-void App::run() noexcept {
+void PortalApp::run() noexcept {
   using namespace sml;
 
-  auto event_queue = std::make_unique<moodycamel::ConcurrentQueue<AppEvent>>();
+  auto event_queue =
+      std::make_unique<moodycamel::ConcurrentQueue<PortalAppEvent>>();
 
   asio::io_context io;
 
-  AppContext app_sm_context{.port = port_};
+  PortalAppContext app_sm_context{.port = port_};
 
-  AppLogger app_logger{app_sm_context};
+  PortalAppLogger app_logger{app_sm_context};
 
   common::ConnectionManager connection_manager{io};
 
-  sm<AppStateMachine, logger<AppLogger>> app_sm{
+  sm<PortalAppStateMachine, logger<PortalAppLogger>> app_sm{
       io, app_logger, event_queue.get(), app_sm_context, connection_manager};
 
   spdlog::trace("Running the login portal app.");
@@ -74,15 +75,15 @@ void App::run() noexcept {
 
   while (!app_sm.is(X)) {
     if (sigint_received) {
-      app_sm.process_event(AppEvents::Stop{});
+      app_sm.process_event(PortalAppEvents::Stop{});
     }
 
-    AppEvent event;
+    PortalAppEvent event;
     while (event_queue->try_dequeue(event)) {
       std::visit(process_event_in_queue, event);
     }
 
-    app_sm.process_event(AppEvents::Tick{});
+    app_sm.process_event(PortalAppEvents::Tick{});
 
     // Remove all connections that are not connected
     const auto &connections = connection_manager.get_all_connections();
@@ -105,6 +106,6 @@ void App::run() noexcept {
   spdlog::debug("The app has stopped.");
 }
 
-App::~App() = default;
+PortalApp::~PortalApp() = default;
 
 } // namespace utopia::portal::app
