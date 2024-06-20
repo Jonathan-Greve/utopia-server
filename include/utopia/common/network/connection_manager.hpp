@@ -1,20 +1,23 @@
+
 #pragma once
 
-#include "utopia/portal_server/client_connection/client_connection.hpp"
+#include "utopia/common/network/connection_base.hpp"
 
 #include <asio.hpp>
 
+#include <cstdint>
 #include <memory>
 #include <mutex>
 #include <unordered_map>
 #include <vector>
 
-namespace utopia::portal::client_connection {
+namespace utopia::common {
 
 class ConnectionManager {
 public:
   ConnectionManager(asio::io_context &io_context);
-  void add_connection(std::unique_ptr<ClientConnection> connection);
+  std::uint32_t
+  add_connection(std::unique_ptr<common::ConnectionBase> connection);
   void remove_connection(common::ConnectionBase *connection);
   common::ConnectionBase *get_connection(std::size_t id) const;
   std::vector<common::ConnectionBase *> get_all_connections() const;
@@ -27,4 +30,4 @@ private:
   std::size_t next_id_ = 0;
 };
 
-} // namespace utopia::portal::client_connection
+} // namespace utopia::common
