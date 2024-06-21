@@ -1,5 +1,3 @@
-#pragma once
-
 #include "utopia/portal_server/client_connection/packets/tls/tls_change_cipher_spec_packet.hpp"
 
 #include "utopia/common/network/endian/endian.hpp"
