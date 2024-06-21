@@ -19,19 +19,12 @@ parse_arguments(argparse::ArgumentParser &arg_parser, const int argc,
             "critical, off)")
       .default_value(std::string{"debug"});
 
-  constexpr std::uint32_t default_port = 6112;
+  constexpr std::uint32_t default_port = 6113;
   arg_parser.add_argument("--port")
       .help("Port to connect to")
       .default_value(default_port);
 
-  arg_parser.add_argument("--auth_port")
-      .help("Port to connect to")
-      .default_value(default_port);
-  arg_parser.add_argument("--auth-host")
-      .help("User login password")
-      .default_value(std::string{"localhost"});
-
-  constexpr std::uint32_t default_game_version = 37400;
+  constexpr std::uint32_t default_game_version = 37404;
   arg_parser.add_argument("--key-path")
       .help("Relative path to the Diffie-Hellman key file")
       .default_value(
