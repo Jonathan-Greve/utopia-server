@@ -15,7 +15,7 @@
 #include <mbedtls/sha256.h>
 #include <spdlog/spdlog.h>
 
-#include <random>
+#include <string_view>
 
 namespace utopia::portal::client_connection {
 
@@ -27,7 +27,7 @@ inline const auto send_tls_server_finished =
       TlsServerFinishedPacket tls_server_finished_packet;
 
       // Build the server_finished data from the checksum
-      constexpr std::string server_finished_label = "server finished";
+      constexpr std::string_view server_finished_label = "server finished";
       const std::vector<std::uint8_t> server_finished_label_vec(
           server_finished_label.begin(), server_finished_label.end());
 

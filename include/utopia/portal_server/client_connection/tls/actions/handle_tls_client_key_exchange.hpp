@@ -1,7 +1,6 @@
 #pragma once
 
 #include "utopia/portal_server/client_connection/events/portal_client_connection_event.hpp"
-#include "utopia/portal_server/client_connection/events/portal_client_connection_events.hpp"
 #include "utopia/portal_server/client_connection/packets/tls/tls_client_key_exchange_packet.hpp"
 #include "utopia/portal_server/client_connection/tls/srp_helper_functions/concat.hpp"
 #include "utopia/portal_server/client_connection/tls/srp_helper_functions/pad.hpp"
@@ -17,6 +16,7 @@
 #include <array>
 #include <cstdint>
 #include <optional>
+#include <string_view>
 #include <vector>
 
 namespace utopia::portal::client_connection {
@@ -96,7 +96,7 @@ inline const auto handle_tls_client_key_exchange =
       const auto randoms_cli_ser =
           serialize_tls12_random(context.client_random, context.server_random);
 
-      constexpr std::string master_secret_label = "master secret";
+      constexpr std::string_view master_secret_label = "master secret";
       const std::vector<std::uint8_t> master_secret_label_vec(
           master_secret_label.begin(), master_secret_label.end());
 
@@ -119,7 +119,7 @@ inline const auto handle_tls_client_key_exchange =
       const auto randoms_ser_client =
           serialize_tls12_random(context.server_random, context.client_random);
 
-      constexpr std::string keyblock_label = "key expansion";
+      constexpr std::string_view keyblock_label = "key expansion";
       const std::vector<std::uint8_t> keyblock_label_vec(keyblock_label.begin(),
                                                          keyblock_label.end());
 
@@ -183,7 +183,7 @@ inline const auto handle_tls_client_key_exchange =
         return;
       }
 
-      constexpr std::string client_finished_label = "client finished";
+      constexpr std::string_view client_finished_label = "client finished";
       const std::vector<std::uint8_t> client_finished_label_vec(
           client_finished_label.begin(), client_finished_label.end());
 
