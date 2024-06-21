@@ -24,7 +24,7 @@ parse_arguments(argparse::ArgumentParser &arg_parser, const int argc,
       .help("Port to connect to")
       .default_value(default_port);
 
-  constexpr std::uint32_t default_game_version = 37404;
+  constexpr std::uint32_t default_game_version = 37408;
   arg_parser.add_argument("--key-path")
       .help("Relative path to the Diffie-Hellman key file")
       .default_value(
