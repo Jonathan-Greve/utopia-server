@@ -27,10 +27,10 @@ inline const auto check_for_new_connections =
         const auto id =
             connection_manager.add_connection(std::move(connection));
 
-        io.post([&connection_manager, id]() {
+        io.post([&, id]() {
           static_cast<client_connection::AuthClientConnection *>(
               connection_manager.get_connection(id))
-              ->run();
+              ->run(app_context.game_version, app_context.diffie_hellman_key);
         });
       }
     };

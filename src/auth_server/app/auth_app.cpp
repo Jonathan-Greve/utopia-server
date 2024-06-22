@@ -53,7 +53,9 @@ void AuthApp::run() noexcept {
 
   asio::io_context io;
 
-  AuthAppContext app_sm_context{.port = port_};
+  AuthAppContext app_sm_context{.port = port_,
+                                .game_version = game_version_,
+                                .diffie_hellman_key = diffie_hellman_key_};
 
   AuthAppLogger app_logger{app_sm_context};
 

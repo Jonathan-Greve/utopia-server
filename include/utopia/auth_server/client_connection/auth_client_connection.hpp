@@ -7,9 +7,10 @@ namespace utopia::auth::client_connection {
 
 class AuthClientConnection : public common::ConnectionBase {
 public:
-  AuthClientConnection(asio::io_context &io_context, unsigned short port);
+  AuthClientConnection(asio::io_context &io_context, std::uint32_t port);
 
-  void run();
+  void run(const std::uint32_t game_version,
+           const common::DiffieHellmanKey &diffie_hellman_key);
 
 private:
   asio::io_context &io_context_;

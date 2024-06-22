@@ -6,8 +6,10 @@
 #include "utopia/auth_server/client_connection/auth_client_connection_logger.hpp"
 #include "utopia/auth_server/client_connection/auth_client_connection_state_machine.hpp"
 #include "utopia/auth_server/client_connection/events/auth_client_connection_event.hpp"
+#include "utopia/auth_server/client_connection/packets/client_connect_version_packet.hpp"
 #include "utopia/common/network/connection_base.hpp"
 #include "utopia/common/network/connection_manager.hpp"
+#include "utopia/common/network/diffie_hellman_key.hpp"
 #include "utopia/common/strings/get_hex_string_from_bytes.hpp"
 
 #include <asio.hpp>
@@ -37,14 +39,46 @@ void log_received_data(const std::vector<std::uint8_t> &recv_buf,
 
 namespace utopia::auth::client_connection {
 AuthClientConnection::AuthClientConnection(asio::io_context &io_context,
-                                           unsigned short port)
+                                           std::uint32_t port)
     : io_context_(io_context), common::ConnectionBase(io_context) {
   if (accept_connection(port)) {
     spdlog::info("Accepted incoming connection on port {}", port);
   }
 }
 
-void AuthClientConnection::run() {
+void AuthClientConnection::run(
+    const std::uint32_t game_version,
+    const common::DiffieHellmanKey &diffie_hellman_key) {
+  // Verify that we are using the same client version
+  std::vector<std::uint8_t> recv_buf;
+  auto num_bytes_read = read_some(recv_buf);
+  if (!num_bytes_read) {
+    spdlog::error("Failed to read ClientConnectVersionPacket.");
+    return;
+  }
+
+  log_received_data(recv_buf, num_bytes_read.value());
+
+  ClientConnectVersionPacket packet{recv_buf};
+  if (!packet.is_valid()) {
+    spdlog::error("Received invalid ClientConnectVersionPacket.");
+    return;
+  }
+
+  recv_buf.erase(recv_buf.begin(), recv_buf.begin() + packet.get_packet_size());
+
+  if (packet.version != game_version) {
+    spdlog::error("Received invalid client version: 0x{:08x}.", packet.version);
+    return;
+  }
+
+  if (!do_key_exchange(diffie_hellman_key)) {
+    spdlog::error("Failed to do key exchange.");
+    return;
+  }
+
+  spdlog::debug("Key exchange successful.");
+
   using namespace boost::sml;
   auto event_queue = std::make_unique<
       moodycamel::ConcurrentQueue<AuthClientConnectionEvent>>();
@@ -57,8 +91,6 @@ void AuthClientConnection::run() {
   sm<AuthClientConnectionStateMachine, logger<AuthClientConnectionLogger>>
       client_connection_sm{*this, io_context_, client_connection_sm_context,
                            client_connection_logger, event_queue.get()};
-
-  std::vector<std::uint8_t> recv_buf;
 
   auto is_sm_running = [&client_connection_sm] {
     return !client_connection_sm.is(sml::X);
