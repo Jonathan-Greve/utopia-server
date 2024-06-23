@@ -6,6 +6,7 @@
 #include "utopia/auth_server/client_connection/auth_client_connection_logger.hpp"
 #include "utopia/auth_server/client_connection/auth_client_connection_state_machine.hpp"
 #include "utopia/auth_server/client_connection/events/auth_client_connection_event.hpp"
+#include "utopia/auth_server/client_connection/events/dispatch_auth_client_packet.hpp"
 #include "utopia/auth_server/client_connection/packets/client_connect_version_packet.hpp"
 #include "utopia/common/network/connection_base.hpp"
 #include "utopia/common/network/connection_manager.hpp"
@@ -18,6 +19,8 @@
 
 #include <chrono>
 #include <thread>
+
+namespace sml = boost::sml;
 
 void log_received_data(const std::vector<std::uint8_t> &recv_buf,
                        size_t num_bytes_read) {
@@ -40,7 +43,14 @@ void log_received_data(const std::vector<std::uint8_t> &recv_buf,
 namespace utopia::auth::client_connection {
 AuthClientConnection::AuthClientConnection(asio::io_context &io_context,
                                            std::uint32_t port)
-    : io_context_(io_context), common::ConnectionBase(io_context) {
+    : io_context_(io_context), common::ConnectionBase(io_context),
+      event_queue_(), client_connection_sm_context_(),
+      client_connection_logger_(client_connection_sm_context_),
+      client_connection_sm_(
+          std::make_unique<sml::sm<AuthClientConnectionStateMachine,
+                                   sml::logger<AuthClientConnectionLogger>>>(
+              *this, io_context_, client_connection_sm_context_,
+              client_connection_logger_, &event_queue_)) {
   if (accept_connection(port)) {
     spdlog::info("Accepted incoming connection on port {}", port);
   }
@@ -99,14 +109,15 @@ void AuthClientConnection::run(
 
   spdlog::info("Running client connection.");
   while (is_connected()) {
-    auto num_bytes_read = read_some(recv_buf);
+    auto num_bytes_read = read_some_and_decrypt(recv_buf);
     if (!num_bytes_read) {
       continue;
     }
 
-    // while (!recv_buf.empty()) {
-    //   recv_buf.clear();
-    // }
+    if (auth_client_recv_buf_.size() >= 2) {
+      dispatch_auth_client_packet(this, auth_client_recv_buf_);
+    }
+
     log_received_data(recv_buf, num_bytes_read.value());
   }
 
@@ -115,6 +126,21 @@ void AuthClientConnection::run(
   disconnect();
 
   spdlog::debug("AuthClientConnection::Run() finished.");
+}
+
+void AuthClientConnection::process_event(
+    const AuthClientPacket &packet) noexcept {
+  spdlog::trace("Processing AuthClientPacket event.");
+  std::visit(
+      [&](auto &&x) {
+        if (x.packet_valid) {
+          spdlog::debug("Packet {}({}) has size = {}:\n{}\n",
+                        x.get_packet_name(), x.header_id, x.get_packet_size(),
+                        x.get_packet_as_printable());
+          client_connection_sm_->process_event(x);
+        }
+      },
+      packet);
 }
 
 } // namespace utopia::auth::client_connection

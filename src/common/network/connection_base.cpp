@@ -160,16 +160,26 @@ ConnectionBase::read_some_and_decrypt(std::vector<std::uint8_t> &data) {
 
   asio::error_code ec;
   std::vector<std::uint8_t> recv_buffer(10000);
-  const std::size_t length = socket_.read_some(asio::buffer(data), ec);
+  const std::size_t length = socket_.read_some(asio::buffer(recv_buffer), ec);
 
   if (ec) {
-    spdlog::error("Failed to receive data: {}", ec.message());
+    if (ec == asio::error::eof || ec == asio::error::connection_reset) {
+      spdlog::info("Client disconnected");
+    } else {
+      spdlog::error("Failed to receive data: {} (error code: {})", ec.message(),
+                    ec.value());
+    }
+    socket_.close();
     return std::nullopt;
   }
 
-  data.resize(length); // Resize to actual data length received
+  recv_buffer.resize(length);
+  std::vector<std::uint8_t> decrypted_data(length);
+  decrypt(recv_buffer, decrypted_data);
 
-  decrypt(data, data);
+  // Append the decrypted data to the end of the input argument data
+  data.insert(data.end(), decrypted_data.begin(), decrypted_data.end());
+
   return static_cast<std::uint32_t>(length);
 }
 
