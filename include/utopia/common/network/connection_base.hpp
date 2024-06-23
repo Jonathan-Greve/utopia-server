@@ -55,7 +55,8 @@ protected:
   bool accept_connection(unsigned short port);
   std::optional<std::string> get_local_endpoint_address() const;
   std::optional<std::string> get_remote_endpoint_address() const;
-  bool do_key_exchange(const DiffieHellmanKey &dhm_key);
+  bool do_key_exchange(const DiffieHellmanKey &dhm_key,
+                       const std::array<std::uint8_t, 64> &private_key);
   psa_status_t encrypt(const std::vector<std::uint8_t> &input,
                        std::vector<std::uint8_t> &output);
   psa_status_t decrypt(const std::vector<std::uint8_t> &input,

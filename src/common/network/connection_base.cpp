@@ -346,21 +346,25 @@ bool ConnectionBase::send(const std::vector<std::uint8_t> &data) {
  * @return true on successful key exchange and ARC4 setup, false otherwise
  * (e.g., if the computation fails).
  */
-bool ConnectionBase::do_key_exchange(const DiffieHellmanKey &dhm_key) {
-  mbedtls_mpi private_key, public_key, shared_secret;
-  mbedtls_mpi_init(&private_key);
-  mbedtls_mpi_init(&public_key);
-  mbedtls_mpi_init(&shared_secret);
+bool ConnectionBase::do_key_exchange(
+    const DiffieHellmanKey &dhm_key,
+    const std::array<std::uint8_t, 64> &private_key) {
+  mbedtls_mpi mpi_private_key, mpi_public_key, mpi_shared_secret,
+      mpi_public_key_precomputed;
+
+  mbedtls_mpi_init(&mpi_private_key);
+  mbedtls_mpi_init(&mpi_public_key);
+  mbedtls_mpi_init(&mpi_shared_secret);
+  mbedtls_mpi_init(&mpi_public_key_precomputed);
 
   mbedtls_mpi prime_modulus = dhm_key.get_prime_modulus();
   mbedtls_mpi primitive_root = dhm_key.get_primitive_root();
 
-  // Generate server's private key
-  mbedtls_mpi_fill_random(&private_key, 64, mbedtls_ctr_drbg_random,
-                          &ctr_drbg_);
+  // Set the private key from the given 64-byte array
+  mbedtls_mpi_read_binary(&mpi_private_key, private_key.data(), 64);
 
   // Compute server's public key: g^y mod p
-  mbedtls_mpi_exp_mod(&public_key, &primitive_root, &private_key,
+  mbedtls_mpi_exp_mod(&mpi_public_key, &primitive_root, &mpi_private_key,
                       &prime_modulus, nullptr);
 
   // Receive client's public key
@@ -381,10 +385,10 @@ bool ConnectionBase::do_key_exchange(const DiffieHellmanKey &dhm_key) {
   mbedtls_mpi_read_binary(&client_public, client_seed.seed.data() + 2, 64);
 
   // Compute shared secret: (g^x)^y mod p
-  mbedtls_mpi_exp_mod(&shared_secret, &client_public, &private_key,
+  mbedtls_mpi_exp_mod(&mpi_shared_secret, &client_public, &mpi_private_key,
                       &prime_modulus, nullptr);
 
-  if (shared_secret.n == 0 || public_key.n == 0) {
+  if (mpi_shared_secret.n == 0 || mpi_public_key.n == 0) {
     spdlog::error("Diffie-Hellman computation failed (empty).");
     return false;
   }
@@ -402,7 +406,8 @@ bool ConnectionBase::do_key_exchange(const DiffieHellmanKey &dhm_key) {
   }
 
   // XOR the first 20 bytes of the shared secret with the server seed
-  auto *const shared_bytes = reinterpret_cast<std::uint8_t *>(shared_secret.p);
+  auto *const shared_bytes =
+      reinterpret_cast<std::uint8_t *>(mpi_shared_secret.p);
   std::span<std::uint8_t, 20> shared_bytes_span(shared_bytes, 20);
   for (std::uint8_t i = 0; i < 20; i++) {
     server_seed.seed[i] ^= shared_bytes_span[i];
@@ -415,9 +420,9 @@ bool ConnectionBase::do_key_exchange(const DiffieHellmanKey &dhm_key) {
   mbedtls_arc4_setup(&arc4_decrypt_context_, arc4_key, 20);
 
   // Clean up
-  mbedtls_mpi_free(&private_key);
-  mbedtls_mpi_free(&public_key);
-  mbedtls_mpi_free(&shared_secret);
+  mbedtls_mpi_free(&mpi_private_key);
+  mbedtls_mpi_free(&mpi_public_key);
+  mbedtls_mpi_free(&mpi_shared_secret);
   mbedtls_mpi_free(&client_public);
 
   return true;

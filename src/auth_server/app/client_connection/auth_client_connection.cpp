@@ -48,7 +48,8 @@ AuthClientConnection::AuthClientConnection(asio::io_context &io_context,
 
 void AuthClientConnection::run(
     const std::uint32_t game_version,
-    const common::DiffieHellmanKey &diffie_hellman_key) {
+    const common::DiffieHellmanKey &diffie_hellman_key,
+    const std::array<std::uint8_t, 64> private_key) {
   // Verify that we are using the same client version
   std::vector<std::uint8_t> recv_buf;
   auto num_bytes_read = read_some(recv_buf, 16);
@@ -72,7 +73,7 @@ void AuthClientConnection::run(
     return;
   }
 
-  if (!do_key_exchange(diffie_hellman_key)) {
+  if (!do_key_exchange(diffie_hellman_key, private_key)) {
     spdlog::error("Failed to do key exchange.");
     return;
   }

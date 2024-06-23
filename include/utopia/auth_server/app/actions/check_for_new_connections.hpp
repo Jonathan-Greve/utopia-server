@@ -30,7 +30,8 @@ inline const auto check_for_new_connections =
         io.post([&, id]() {
           static_cast<client_connection::AuthClientConnection *>(
               connection_manager.get_connection(id))
-              ->run(app_context.game_version, app_context.diffie_hellman_key);
+              ->run(app_context.game_version, app_context.diffie_hellman_key,
+                    app_context.private_key);
         });
       }
     };
