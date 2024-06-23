@@ -13,6 +13,7 @@ struct AuthAppContext {
   std::uint32_t port = 0;
   std::uint32_t game_version = 0;
   const common::DiffieHellmanKey &diffie_hellman_key;
+  const std::array<std::uint8_t, 64> private_key;
 
   boost::circular_buffer<common::StateTransitionLogEntry> state_log{100};
 };

@@ -54,7 +54,8 @@ void AuthApp::run() noexcept {
 
   AuthAppContext app_sm_context{.port = port_,
                                 .game_version = game_version_,
-                                .diffie_hellman_key = diffie_hellman_key_};
+                                .diffie_hellman_key = diffie_hellman_key_,
+                                .private_key = private_key_};
 
   AuthAppLogger app_logger{app_sm_context};
 
