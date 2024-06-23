@@ -61,22 +61,23 @@ void AuthClientConnection::run(
     const common::DiffieHellmanKey &diffie_hellman_key,
     const std::array<std::uint8_t, 64> private_key) {
   // Verify that we are using the same client version
-  std::vector<std::uint8_t> recv_buf;
-  auto num_bytes_read = read_some(recv_buf, 16);
+  auto num_bytes_read = read_some(auth_client_recv_buf_, 16);
   if (!num_bytes_read) {
     spdlog::error("Failed to read ClientConnectVersionPacket.");
     return;
   }
 
-  log_received_data(recv_buf, num_bytes_read.value());
+  log_received_data(auth_client_recv_buf_, num_bytes_read.value());
 
-  ClientConnectVersionPacket packet{recv_buf};
+  ClientConnectVersionPacket packet{auth_client_recv_buf_};
   if (!packet.is_valid()) {
     spdlog::error("Received invalid ClientConnectVersionPacket.");
     return;
   }
 
-  recv_buf.erase(recv_buf.begin(), recv_buf.begin() + packet.get_packet_size());
+  auth_client_recv_buf_.erase(auth_client_recv_buf_.begin(),
+                              auth_client_recv_buf_.begin() +
+                                  packet.get_packet_size());
 
   if (packet.version != game_version) {
     spdlog::error("Received invalid client version: 0x{:08x}.", packet.version);
@@ -109,16 +110,16 @@ void AuthClientConnection::run(
 
   spdlog::info("Running client connection.");
   while (is_connected()) {
-    auto num_bytes_read = read_some_and_decrypt(recv_buf);
+    auto num_bytes_read = read_some_and_decrypt(auth_client_recv_buf_);
     if (!num_bytes_read) {
       continue;
     }
 
-    if (auth_client_recv_buf_.size() >= 2) {
-      dispatch_auth_client_packet(this, auth_client_recv_buf_);
+    while (auth_client_recv_buf_.size() >= 2 &&
+           dispatch_auth_client_packet(this, auth_client_recv_buf_)) {
     }
 
-    log_received_data(recv_buf, num_bytes_read.value());
+    log_received_data(auth_client_recv_buf_, num_bytes_read.value());
   }
 
   // In case we are still connected, we need to disconnect.
