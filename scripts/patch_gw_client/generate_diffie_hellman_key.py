@@ -7,7 +7,7 @@ def int_to_bytes(x: int, length: int) -> bytes:
 
 def generate_diffie_hellman_keys():
     # Create the output directory if it doesn't exist
-    output_dir = "scripts/patch_gw_client"
+    output_dir = "data/gw_key"
     os.makedirs(output_dir, exist_ok=True)
 
     # Set the primitive root to 4
