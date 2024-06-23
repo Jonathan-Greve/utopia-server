@@ -124,14 +124,15 @@ ConnectionBase::try_read_some_and_decrypt(std::vector<std::uint8_t> &data) {
 }
 
 std::optional<std::uint32_t>
-ConnectionBase::read_some(std::vector<std::uint8_t> &data) {
+ConnectionBase::read_some(std::vector<std::uint8_t> &data,
+                          std::uint32_t num_bytes_to_read) {
   if (!socket_.is_open()) {
     spdlog::error("Cannot read_some, socket is closed");
     return std::nullopt;
   }
 
   asio::error_code ec;
-  std::vector<std::uint8_t> recv_buffer(10000);
+  std::vector<std::uint8_t> recv_buffer(num_bytes_to_read);
   const std::size_t length = socket_.read_some(asio::buffer(recv_buffer), ec);
 
   if (ec) {
@@ -346,77 +347,78 @@ bool ConnectionBase::send(const std::vector<std::uint8_t> &data) {
  * (e.g., if the computation fails).
  */
 bool ConnectionBase::do_key_exchange(const DiffieHellmanKey &dhm_key) {
-  // Compute g^x (mod p)
-  mbedtls_mpi private_key;
-  mbedtls_mpi public_key;
-  mbedtls_mpi shared_secret;
+  mbedtls_mpi private_key, public_key, shared_secret;
   mbedtls_mpi_init(&private_key);
   mbedtls_mpi_init(&public_key);
   mbedtls_mpi_init(&shared_secret);
 
   mbedtls_mpi prime_modulus = dhm_key.get_prime_modulus();
   mbedtls_mpi primitive_root = dhm_key.get_primitive_root();
-  mbedtls_mpi server_public = dhm_key.get_server_public();
 
+  // Generate server's private key
   mbedtls_mpi_fill_random(&private_key, 64, mbedtls_ctr_drbg_random,
                           &ctr_drbg_);
+
+  // Compute server's public key: g^y mod p
   mbedtls_mpi_exp_mod(&public_key, &primitive_root, &private_key,
                       &prime_modulus, nullptr);
-  mbedtls_mpi_exp_mod(&shared_secret, &server_public, &private_key,
+
+  // Receive client's public key
+  msg_client_seed client_seed;
+  try {
+    const auto num_read_bytes =
+        socket_.read_some(asio::buffer(&client_seed, sizeof(client_seed)));
+    spdlog::debug("Key exchange, received {} bytes from client.",
+                  num_read_bytes);
+  } catch (const std::exception &e) {
+    spdlog::error("Error reading client seed: {}", e.what());
+    return false;
+  }
+
+  // Convert received client public key to MPI
+  mbedtls_mpi client_public;
+  mbedtls_mpi_init(&client_public);
+  mbedtls_mpi_read_binary(&client_public, client_seed.seed.data() + 2, 64);
+
+  // Compute shared secret: (g^x)^y mod p
+  mbedtls_mpi_exp_mod(&shared_secret, &client_public, &private_key,
                       &prime_modulus, nullptr);
 
-  if ((shared_secret.n == 0) || (public_key.n == 0)) {
+  if (shared_secret.n == 0 || public_key.n == 0) {
     spdlog::error("Diffie-Hellman computation failed (empty).");
     return false;
   }
 
-  msg_client_seed client_seed{0, 66};
-  memcpy(client_seed.seed.data(), public_key.p, 64);
+  // Generate 20 random bytes for server seed
+  msg_server_seed server_seed{1, 22};
+  mbedtls_ctr_drbg_random(&ctr_drbg_, server_seed.seed.data(), 20);
 
   const auto num_bytes_written =
-      write(socket_, asio::buffer(&client_seed, sizeof(client_seed)));
-
-  if (num_bytes_written < sizeof(client_seed)) {
-    spdlog::error("Failed to send client seed. Number of bytes written: {}",
+      write(socket_, asio::buffer(&server_seed, sizeof(server_seed)));
+  if (num_bytes_written < sizeof(server_seed)) {
+    spdlog::error("Failed to send server seed. Number of bytes written: {}",
                   num_bytes_written);
     return false;
   }
 
-  msg_server_seed server_seed;
-  try {
-    const auto num_read_bytes =
-        socket_.read_some(asio::buffer(&server_seed, sizeof(server_seed)));
-    spdlog::debug("Key exchange, received {} bytes from server.",
-                  num_read_bytes);
-  } catch (const asio::system_error &e) {
-    // This will catch exceptions thrown by ASio functions as a result of
-    // system errors
-    spdlog::error("Diffie-Hellman computation failed.");
-    spdlog::error("Error reading from socket: {}", e.what());
-  } catch (const std::exception &e) {
-    // This will catch any other standard exceptions
-    spdlog::error("An exception occurred: {}", e.what());
-  } catch (...) {
-    // This will catch any other non-standard exceptions
-    spdlog::error("An unknown exception occurred");
-  }
-
+  // XOR the first 20 bytes of the shared secret with the server seed
   auto *const shared_bytes = reinterpret_cast<std::uint8_t *>(shared_secret.p);
   std::span<std::uint8_t, 20> shared_bytes_span(shared_bytes, 20);
-
   for (std::uint8_t i = 0; i < 20; i++) {
     server_seed.seed[i] ^= shared_bytes_span[i];
   }
 
+  // Set up ARC4 contexts
   std::uint8_t arc4_key[20];
   arc4_hash(server_seed.seed.data(), arc4_key);
-
   mbedtls_arc4_setup(&arc4_encrypt_context_, arc4_key, 20);
   mbedtls_arc4_setup(&arc4_decrypt_context_, arc4_key, 20);
 
+  // Clean up
   mbedtls_mpi_free(&private_key);
   mbedtls_mpi_free(&public_key);
   mbedtls_mpi_free(&shared_secret);
+  mbedtls_mpi_free(&client_public);
 
   return true;
 }

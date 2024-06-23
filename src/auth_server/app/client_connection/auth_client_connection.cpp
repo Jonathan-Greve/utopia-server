@@ -51,7 +51,7 @@ void AuthClientConnection::run(
     const common::DiffieHellmanKey &diffie_hellman_key) {
   // Verify that we are using the same client version
   std::vector<std::uint8_t> recv_buf;
-  auto num_bytes_read = read_some(recv_buf);
+  auto num_bytes_read = read_some(recv_buf, 16);
   if (!num_bytes_read) {
     spdlog::error("Failed to read ClientConnectVersionPacket.");
     return;

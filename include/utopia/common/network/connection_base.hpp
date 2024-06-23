@@ -31,7 +31,9 @@ class ConnectionBase {
 public:
   std::uint32_t try_read_some(std::vector<std::uint8_t> &data);
   std::uint32_t try_read_some_and_decrypt(std::vector<std::uint8_t> &data);
-  std::optional<std::uint32_t> read_some(std::vector<std::uint8_t> &data);
+  std::optional<std::uint32_t>
+  read_some(std::vector<std::uint8_t> &data,
+            std::uint32_t num_bytes_to_read = 8192);
   std::optional<std::uint32_t>
   read_some_and_decrypt(std::vector<std::uint8_t> &data);
   bool encrypt_and_send(const std::vector<std::uint8_t> &data);
