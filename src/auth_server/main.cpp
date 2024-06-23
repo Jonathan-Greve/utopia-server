@@ -1,6 +1,7 @@
 #include "utopia/utopia_pch.hpp"
 
 #include "utopia/auth_server/app/auth_app.hpp"
+#include "utopia/common/file_io/read_file.hpp"
 #include "utopia/common/network/diffie_hellman_key.hpp"
 
 #include <argparse/argparse.hpp>
@@ -25,11 +26,14 @@ parse_arguments(argparse::ArgumentParser &arg_parser, const int argc,
       .help("Port to connect to")
       .default_value(default_port);
 
+  arg_parser.add_argument("--public-key-path")
+      .help("Relative path to the servers public Diffie-Hellman key file")
+      .default_value("data/gw_key/public_gw_key");
+  arg_parser.add_argument("--private-key-path")
+      .help("Relative path to the servers private key file")
+      .default_value("data/gw_key/private_gw_key");
+
   constexpr std::uint32_t default_game_version = 37408;
-  arg_parser.add_argument("--key-path")
-      .help("Relative path to the Diffie-Hellman key file")
-      .default_value(
-          std::format("data/gw_key/gw_{}.pub", default_game_version));
   arg_parser.add_argument("--game-version")
       .help("Game version")
       .default_value(default_game_version);
@@ -97,7 +101,7 @@ int main(int argc, char *argv[]) {
 
   const auto diffie_hellman_key =
       utopia::common::DiffieHellmanKey::create_from_file(
-          arg_parser.get<std::string>("--key-path"));
+          arg_parser.get<std::string>("--public-key-path"));
 
   spdlog::debug("Creating diffie hellman key.");
   if (!diffie_hellman_key.has_value()) {
@@ -105,8 +109,29 @@ int main(int argc, char *argv[]) {
     std::exit(1);
   }
 
+  const auto private_key_data = utopia::common::read_file(
+      arg_parser.get<std::string>("--private-key-path"));
+
+  if (!private_key_data.has_value()) {
+    spdlog::error("Failed to read private key data. Check file path.");
+    std::exit(1);
+  }
+
+  if (private_key_data.value().size() != 64) {
+    spdlog::error("Private key data is not the correct size. Expected 64 "
+                  "bytes, got {} bytes.",
+                  private_key_data.value().size());
+    std::exit(1);
+  }
+  spdlog::debug("Private key data read successfully.");
+
+  std::array<std::uint8_t, 64> private_key_data_array;
+  std::copy(private_key_data.value().begin(), private_key_data.value().end(),
+            private_key_data_array.begin());
+
   spdlog::info("Starting the login portal app.");
-  utopia::auth::app::AuthApp app(arg_parser, diffie_hellman_key.value());
+  utopia::auth::app::AuthApp app(arg_parser, diffie_hellman_key.value(),
+                                 private_key_data_array);
   app.run();
 
   spdlog::info("Exiting the program.");

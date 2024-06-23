@@ -23,7 +23,8 @@ class AuthApp {
 public:
   AuthApp() = delete;
   AuthApp(const argparse::ArgumentParser &arg_parser,
-          const common::DiffieHellmanKey &diffie_hellman_key) noexcept;
+          const common::DiffieHellmanKey &diffie_hellman_key,
+          const std::array<std::uint8_t, 64> private_key) noexcept;
 
   AuthApp(const AuthApp &) = delete;
   AuthApp &operator=(const AuthApp &) = delete;
@@ -35,9 +36,9 @@ public:
 private:
   const std::uint32_t port_;
   const std::uint32_t game_version_;
-  const std::string key_path_;
 
   const common::DiffieHellmanKey &diffie_hellman_key_;
+  const std::array<std::uint8_t, 64> private_key_;
 };
 
 } // namespace utopia::auth::app

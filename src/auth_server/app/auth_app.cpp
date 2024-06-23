@@ -33,13 +33,12 @@ volatile bool sigint_received = false;
 void sig_int_handler(int signal) { sigint_received = true; }
 
 AuthApp::AuthApp(const argparse::ArgumentParser &arg_parser,
-                 const common::DiffieHellmanKey &diffie_hellman_key) noexcept
+                 const common::DiffieHellmanKey &diffie_hellman_key,
+                 const std::array<std::uint8_t, 64> private_key) noexcept
     : port_(arg_parser.get<std::uint32_t>("--port")),
       game_version_(arg_parser.get<std::uint32_t>("--game-version")),
-      key_path_(arg_parser.get<std::string>("--key-path")),
-      diffie_hellman_key_(diffie_hellman_key) {
+      diffie_hellman_key_(diffie_hellman_key), private_key_(private_key) {
   spdlog::info("Game version: {}.", game_version_);
-  spdlog::info("Key path: \"{}\".", key_path_);
   spdlog::info("Port: {}.", port_);
 
   std::signal(SIGINT, sig_int_handler);
