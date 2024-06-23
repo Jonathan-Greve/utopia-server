@@ -12,10 +12,12 @@
 #include <psa/crypto_types.h>
 #include <psa/crypto_values.h>
 
+#include <algorithm>
 #include <cstdint>
 #include <optional>
 #include <string>
 #include <vector>
+
 
 // Used in arc4_hash
 #define ROL32(x, n) ((x << n) | ((x & 0xFFFFFFFF) >> (32 - n)))
@@ -359,16 +361,15 @@ bool ConnectionBase::send(const std::vector<std::uint8_t> &data) {
 bool ConnectionBase::do_key_exchange(
     const DiffieHellmanKey &dhm_key,
     const std::array<std::uint8_t, 64> &private_key) {
-  mbedtls_mpi mpi_private_key, mpi_public_key, mpi_shared_secret,
-      mpi_public_key_precomputed;
+  mbedtls_mpi mpi_private_key, mpi_public_key, mpi_shared_secret;
 
   mbedtls_mpi_init(&mpi_private_key);
   mbedtls_mpi_init(&mpi_public_key);
   mbedtls_mpi_init(&mpi_shared_secret);
-  mbedtls_mpi_init(&mpi_public_key_precomputed);
 
   mbedtls_mpi prime_modulus = dhm_key.get_prime_modulus();
   mbedtls_mpi primitive_root = dhm_key.get_primitive_root();
+  mbedtls_mpi mpi_public_key_precomputed = dhm_key.get_server_public();
 
   // Set the private key from the given 64-byte array
   mbedtls_mpi_read_binary(&mpi_private_key, private_key.data(), 64);
@@ -376,6 +377,12 @@ bool ConnectionBase::do_key_exchange(
   // Compute server's public key: g^y mod p
   mbedtls_mpi_exp_mod(&mpi_public_key, &primitive_root, &mpi_private_key,
                       &prime_modulus, nullptr);
+
+  // Compare the precomputed public key with the computed public key
+  if (mbedtls_mpi_cmp_mpi(&mpi_public_key, &mpi_public_key_precomputed) != 0) {
+    spdlog::error("Server public key mismatch.");
+    return false;
+  }
 
   // Receive client's public key
   msg_client_seed client_seed;
@@ -389,10 +396,15 @@ bool ConnectionBase::do_key_exchange(
     return false;
   }
 
+  // Reverse the byte order of the received seed
+  std::array<unsigned char, 64> reversed_seed;
+  std::reverse_copy(client_seed.seed.begin(), client_seed.seed.end(),
+                    reversed_seed.begin());
+
   // Convert received client public key to MPI
   mbedtls_mpi client_public;
   mbedtls_mpi_init(&client_public);
-  mbedtls_mpi_read_binary(&client_public, client_seed.seed.data() + 2, 64);
+  mbedtls_mpi_read_binary(&client_public, reversed_seed.data(), 64);
 
   // Compute shared secret: (g^x)^y mod p
   mbedtls_mpi_exp_mod(&mpi_shared_secret, &client_public, &mpi_private_key,
