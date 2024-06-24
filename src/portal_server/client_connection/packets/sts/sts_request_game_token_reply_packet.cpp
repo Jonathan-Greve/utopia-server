@@ -93,7 +93,7 @@ std::uint32_t StsRequestGameTokenReplyPacket::get_packet_size() const noexcept {
 }
 
 std::vector<std::uint8_t> StsRequestGameTokenReplyPacket::serialize() noexcept {
-  xml_content_ = std::format("<Reply\n"
+  xml_content_ = std::format("<Reply>\n"
                              "<Token>{}</Token>\n"
                              "</Reply>\n",
                              xml_content_token.to_string());
