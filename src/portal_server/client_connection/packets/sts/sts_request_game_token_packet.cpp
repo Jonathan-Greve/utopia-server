@@ -30,7 +30,6 @@ StsRequestGameTokenPacket::StsRequestGameTokenPacket(
                 std::uint32_t>(data_str, scan_str);
 
   if (!scan_result) {
-    spdlog::error("Failed to parse STS RequestGameToken packet.");
     is_valid_ = false;
     return;
   }
@@ -58,7 +57,6 @@ StsRequestGameTokenPacket::StsRequestGameTokenPacket(
       doc.load_string(xml_content_.c_str());
 
   if (!xml_parse_result) {
-    spdlog::error("Failed to parse XML content.");
     is_valid_ = false;
     return;
   }

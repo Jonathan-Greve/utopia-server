@@ -30,7 +30,6 @@ StsLoginFinishPacket::StsLoginFinishPacket(
                 std::uint32_t>(data_str, scan_str);
 
   if (!scan_result) {
-    spdlog::error("Failed to parse STS LoginFinish packet.");
     is_valid_ = false;
     return;
   }
@@ -58,7 +57,6 @@ StsLoginFinishPacket::StsLoginFinishPacket(
       doc.load_string(xml_content_.c_str());
 
   if (!xml_parse_result) {
-    spdlog::error("Failed to parse XML content.");
     is_valid_ = false;
     return;
   }
@@ -89,7 +87,7 @@ std::vector<std::uint8_t> StsLoginFinishPacket::serialize() noexcept {
                              "<Language>{}</Language>\n"
                              "</Request>\n",
                              xml_content_language);
-  xml_content_size = xml_content_.size();
+  xml_content_size = static_cast<std::uint32_t>(xml_content_.size());
 
   std::string packet_str =
       fmt::format(scan_str, protocol_version_major, protocol_version_minor,

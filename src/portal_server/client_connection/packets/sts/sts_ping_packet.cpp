@@ -25,7 +25,6 @@ StsPingPacket::StsPingPacket(const std::vector<std::uint8_t> &data) noexcept {
       data_str, scan_str);
 
   if (!scan_result) {
-    spdlog::error("Failed to parse STS Ping packet.");
     is_valid_ = false;
     return;
   }

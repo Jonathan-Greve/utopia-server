@@ -29,7 +29,6 @@ StsLoginFinishReplyPacket::StsLoginFinishReplyPacket(
                 std::uint32_t>(data_str, scan_str);
 
   if (!scan_result) {
-    spdlog::error("Failed to parse STS LoginFinish Reply packet.");
     is_valid_ = false;
     return;
   }
@@ -59,7 +58,6 @@ StsLoginFinishReplyPacket::StsLoginFinishReplyPacket(
       doc.load_string(xml_content_.c_str());
 
   if (!xml_parse_result) {
-    spdlog::error("Failed to parse XML content.");
     is_valid_ = false;
     return;
   }
@@ -74,7 +72,6 @@ StsLoginFinishReplyPacket::StsLoginFinishReplyPacket(
   const auto user_id = common::GWUUID::from_string(
       connect_reply_node.child("UserId").text().as_string());
   if (!user_id) {
-    spdlog::error("Failed to parse UserId.");
     is_valid_ = false;
     return;
   }
@@ -88,7 +85,6 @@ StsLoginFinishReplyPacket::StsLoginFinishReplyPacket(
   const auto resume_token = common::GWUUID::from_string(
       connect_reply_node.child("ResumeToken").text().as_string());
   if (!resume_token) {
-    spdlog::error("Failed to parse ResumeToken.");
     is_valid_ = false;
     return;
   }

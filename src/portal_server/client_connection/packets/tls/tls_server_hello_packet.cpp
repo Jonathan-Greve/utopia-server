@@ -20,7 +20,7 @@ TlsServerHelloPacket::TlsServerHelloPacket(std::vector<uint8_t> &data) {
 
   type = data[0];
   if (type != 0x16) {
-    spdlog::trace("Invalid TLS packet type: {}", type);
+
     return;
   }
 

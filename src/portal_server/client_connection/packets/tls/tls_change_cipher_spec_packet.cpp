@@ -22,7 +22,6 @@ TlsChangeCipherSpecPacket::TlsChangeCipherSpecPacket(
 
   type = data[0];
   if (type != 0x14) {
-    spdlog::trace("Invalid TLS packet type: {}", type);
     return;
   }
 

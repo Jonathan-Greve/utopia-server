@@ -22,7 +22,7 @@ TlsServerKeyExchangePacket::TlsServerKeyExchangePacket(
 
   type = data[0];
   if (type != 0x16) {
-    spdlog::trace("Invalid TLS packet type: {}", type);
+
     return;
   }
 

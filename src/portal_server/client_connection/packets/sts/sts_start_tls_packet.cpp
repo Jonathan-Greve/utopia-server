@@ -63,7 +63,6 @@ StsStartTlsPacket::StsStartTlsPacket(
 
     alternative_scan_str_used = true;
   } else {
-    spdlog::error("Failed to parse STS StartTls packet.");
     is_valid_ = false;
     return;
   }
