@@ -28,7 +28,8 @@ inline const auto send_request_game_token_reply_packet =
       sts_request_game_token_reply_packet.sequence_number =
           context.sequence_number++;
       sts_request_game_token_reply_packet.xml_content_token =
-          common::GWUUID::generate();
+          common::GWUUID::from_string("9B6F3BC8-8F6E-4A8D-B468-A9FB48D518A8")
+              .value();
 
       std::vector<std::uint8_t> tls_packet = {0x17, 0x03, 0x03, 0x00, 0x00};
       common::be16_enc(tls_packet.data() + 3,

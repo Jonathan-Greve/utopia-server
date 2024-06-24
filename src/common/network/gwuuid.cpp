@@ -21,7 +21,7 @@ GWUUID::GWUUID() noexcept
 
 std::string GWUUID::to_string() const {
   return fmt::format(
-      "{:08x}-{:04x}-{:04x}-{:02x}{:02x}-{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
+      "{:08X}-{:04X}-{:04X}-{:02X}{:02X}-{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}",
       time_low, time_mid, time_hi_and_version, clock_seq_hi_and_reserved,
       clock_seq_low, node[0], node[1], node[2], node[3], node[4], node[5]);
 }

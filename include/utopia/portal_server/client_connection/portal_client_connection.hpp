@@ -29,7 +29,6 @@ private:
   inline bool process_tls_sts_packet(std::vector<uint8_t> &data, SM &sm) {
     PacketType packet(data);
     if (packet.is_valid()) {
-      spdlog::debug("Packet size: {}", packet.get_packet_size());
       const auto ser_packet = packet.serialize();
 
       // Compare each byte in data and ser_packet

@@ -21,6 +21,9 @@ inline const auto send_session_info =
        AuthClientConnection &client_connection,
        common::AuthClientHeartbeat event) {
       common::AuthServerSessionInfo session_info;
+      session_info.salt = 0x164d9765;
+      session_info.field_1 = 0xffffffff;
+      session_info.field_2 = 0x00000000;
 
       if (!client_connection.encrypt_and_send(session_info.get_packed_data())) {
         spdlog::error("Failed to send session info to the client");
