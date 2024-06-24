@@ -15,7 +15,7 @@ namespace common {
 
 class AuthClientHeartbeat : public PacketReader {
 public:
-  AuthClientHeartbeat() : PacketReader(0) {};
+  AuthClientHeartbeat() : PacketReader(32768) {};
   AuthClientHeartbeat(const std::vector<std::uint8_t> &data);
   std::uint32_t uptime;
 
@@ -36,7 +36,7 @@ private:
 
 class AuthClientComputerUserInfo : public PacketReader {
 public:
-  AuthClientComputerUserInfo() : PacketReader(1) {};
+  AuthClientComputerUserInfo() : PacketReader(32769) {};
   AuthClientComputerUserInfo(const std::vector<std::uint8_t> &data);
   std::u16string pc_username;
   std::u16string pc_name;
@@ -58,7 +58,7 @@ private:
 
 class AuthClientGameInfo : public PacketReader {
 public:
-  AuthClientGameInfo() : PacketReader(2) {};
+  AuthClientGameInfo() : PacketReader(32770) {};
   AuthClientGameInfo(const std::vector<std::uint8_t> &data);
   std::uint32_t game_version;
   std::array<std::uint8_t, 16> hash;
@@ -80,7 +80,7 @@ private:
 
 class AuthClientPacket003 : public PacketReader {
 public:
-  AuthClientPacket003() : PacketReader(3) {};
+  AuthClientPacket003() : PacketReader(32771) {};
   AuthClientPacket003(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
   std::u16string field_1;
@@ -104,7 +104,7 @@ private:
 
 class AuthClientPacket004 : public PacketReader {
 public:
-  AuthClientPacket004() : PacketReader(4) {};
+  AuthClientPacket004() : PacketReader(32772) {};
   AuthClientPacket004(const std::vector<std::uint8_t> &data);
 
   std::string get_packet_name() const;
@@ -124,7 +124,7 @@ private:
 
 class AuthClientPacket005 : public PacketReader {
 public:
-  AuthClientPacket005() : PacketReader(5) {};
+  AuthClientPacket005() : PacketReader(32773) {};
   AuthClientPacket005(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
   std::uint32_t field_1;
@@ -149,7 +149,7 @@ private:
 
 class AuthClientPacket006 : public PacketReader {
 public:
-  AuthClientPacket006() : PacketReader(6) {};
+  AuthClientPacket006() : PacketReader(32774) {};
   AuthClientPacket006(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
   std::uint32_t field_1;
@@ -171,7 +171,7 @@ private:
 
 class AuthClientPacket007 : public PacketReader {
 public:
-  AuthClientPacket007() : PacketReader(7) {};
+  AuthClientPacket007() : PacketReader(32775) {};
   AuthClientPacket007(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
   std::u16string field_1;
@@ -193,7 +193,7 @@ private:
 
 class AuthClientPacket008 : public PacketReader {
 public:
-  AuthClientPacket008() : PacketReader(8) {};
+  AuthClientPacket008() : PacketReader(32776) {};
   AuthClientPacket008(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
   std::u16string field_1;
@@ -215,7 +215,7 @@ private:
 
 class AuthClientPacket009 : public PacketReader {
 public:
-  AuthClientPacket009() : PacketReader(9) {};
+  AuthClientPacket009() : PacketReader(32777) {};
   AuthClientPacket009(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
   std::u16string field_1;
@@ -238,7 +238,7 @@ private:
 
 class AuthClientChangePlayCharacter : public PacketReader {
 public:
-  AuthClientChangePlayCharacter() : PacketReader(10) {};
+  AuthClientChangePlayCharacter() : PacketReader(32778) {};
   AuthClientChangePlayCharacter(const std::vector<std::uint8_t> &data);
   std::uint32_t transaction_id;
   std::u16string character_name;
@@ -260,7 +260,7 @@ private:
 
 class AuthClientPacket011 : public PacketReader {
 public:
-  AuthClientPacket011() : PacketReader(11) {};
+  AuthClientPacket011() : PacketReader(32779) {};
   AuthClientPacket011(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
   std::uint32_t field_1;
@@ -284,7 +284,7 @@ private:
 
 class AuthClientPacket012 : public PacketReader {
 public:
-  AuthClientPacket012() : PacketReader(12) {};
+  AuthClientPacket012() : PacketReader(32780) {};
   AuthClientPacket012(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
   std::uint32_t field_1;
@@ -307,7 +307,7 @@ private:
 
 class AuthClientPacket013 : public PacketReader {
 public:
-  AuthClientPacket013() : PacketReader(13) {};
+  AuthClientPacket013() : PacketReader(32781) {};
   AuthClientPacket013(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
 
@@ -328,7 +328,7 @@ private:
 
 class AuthClientSetPlayerStatus : public PacketReader {
 public:
-  AuthClientSetPlayerStatus() : PacketReader(14) {};
+  AuthClientSetPlayerStatus() : PacketReader(32782) {};
   AuthClientSetPlayerStatus(const std::vector<std::uint8_t> &data);
   std::uint32_t status;
 
@@ -349,7 +349,7 @@ private:
 
 class AuthClientHardwareInfo : public PacketReader {
 public:
-  AuthClientHardwareInfo() : PacketReader(15) {};
+  AuthClientHardwareInfo() : PacketReader(32783) {};
   AuthClientHardwareInfo(const std::vector<std::uint8_t> &data);
   std::vector<std::uint8_t> info;
   std::array<std::uint8_t, 16> hash;
@@ -371,7 +371,7 @@ private:
 
 class AuthClientPacket016 : public PacketReader {
 public:
-  AuthClientPacket016() : PacketReader(16) {};
+  AuthClientPacket016() : PacketReader(32784) {};
   AuthClientPacket016(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
 
@@ -392,7 +392,7 @@ private:
 
 class AuthClientPacket017 : public PacketReader {
 public:
-  AuthClientPacket017() : PacketReader(17) {};
+  AuthClientPacket017() : PacketReader(32785) {};
   AuthClientPacket017(const std::vector<std::uint8_t> &data);
   std::u16string field_0;
 
@@ -413,7 +413,7 @@ private:
 
 class AuthClientPacket018 : public PacketReader {
 public:
-  AuthClientPacket018() : PacketReader(18) {};
+  AuthClientPacket018() : PacketReader(32786) {};
   AuthClientPacket018(const std::vector<std::uint8_t> &data);
 
   std::string get_packet_name() const;
@@ -433,7 +433,7 @@ private:
 
 class AuthClientPacket019 : public PacketReader {
 public:
-  AuthClientPacket019() : PacketReader(19) {};
+  AuthClientPacket019() : PacketReader(32787) {};
   AuthClientPacket019(const std::vector<std::uint8_t> &data);
 
   std::string get_packet_name() const;
@@ -453,7 +453,7 @@ private:
 
 class AuthClientPacket020 : public PacketReader {
 public:
-  AuthClientPacket020() : PacketReader(20) {};
+  AuthClientPacket020() : PacketReader(32788) {};
   AuthClientPacket020(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
   std::uint32_t field_1;
@@ -478,7 +478,7 @@ private:
 
 class AuthClientPacket021 : public PacketReader {
 public:
-  AuthClientPacket021() : PacketReader(21) {};
+  AuthClientPacket021() : PacketReader(32789) {};
   AuthClientPacket021(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
 
@@ -499,7 +499,7 @@ private:
 
 class AuthClientPacket022 : public PacketReader {
 public:
-  AuthClientPacket022() : PacketReader(22) {};
+  AuthClientPacket022() : PacketReader(32790) {};
   AuthClientPacket022(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
 
@@ -520,7 +520,7 @@ private:
 
 class AuthClientPacket023 : public PacketReader {
 public:
-  AuthClientPacket023() : PacketReader(23) {};
+  AuthClientPacket023() : PacketReader(32791) {};
   AuthClientPacket023(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
 
@@ -541,7 +541,7 @@ private:
 
 class AuthClientPacket024 : public PacketReader {
 public:
-  AuthClientPacket024() : PacketReader(24) {};
+  AuthClientPacket024() : PacketReader(32792) {};
   AuthClientPacket024(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
   std::u16string field_1;
@@ -563,7 +563,7 @@ private:
 
 class AuthClientPacket025 : public PacketReader {
 public:
-  AuthClientPacket025() : PacketReader(25) {};
+  AuthClientPacket025() : PacketReader(32793) {};
   AuthClientPacket025(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
   std::uint32_t field_1;
@@ -587,7 +587,7 @@ private:
 
 class AuthClientPacket026 : public PacketReader {
 public:
-  AuthClientPacket026() : PacketReader(26) {};
+  AuthClientPacket026() : PacketReader(32794) {};
   AuthClientPacket026(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
   std::uint32_t field_1;
@@ -611,7 +611,7 @@ private:
 
 class AuthClientPacket027 : public PacketReader {
 public:
-  AuthClientPacket027() : PacketReader(27) {};
+  AuthClientPacket027() : PacketReader(32795) {};
   AuthClientPacket027(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
   std::array<std::uint8_t, 16> field_1;
@@ -634,7 +634,7 @@ private:
 
 class AuthClientPacket028 : public PacketReader {
 public:
-  AuthClientPacket028() : PacketReader(28) {};
+  AuthClientPacket028() : PacketReader(32796) {};
   AuthClientPacket028(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
   std::u16string field_1;
@@ -656,7 +656,7 @@ private:
 
 class AuthClientPacket029 : public PacketReader {
 public:
-  AuthClientPacket029() : PacketReader(29) {};
+  AuthClientPacket029() : PacketReader(32797) {};
   AuthClientPacket029(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
   std::uint32_t field_1;
@@ -678,7 +678,7 @@ private:
 
 class AuthClientPacket030 : public PacketReader {
 public:
-  AuthClientPacket030() : PacketReader(30) {};
+  AuthClientPacket030() : PacketReader(32798) {};
   AuthClientPacket030(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
   std::uint32_t field_1;
@@ -701,7 +701,7 @@ private:
 
 class AuthClientPacket031 : public PacketReader {
 public:
-  AuthClientPacket031() : PacketReader(31) {};
+  AuthClientPacket031() : PacketReader(32799) {};
   AuthClientPacket031(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
   std::uint32_t field_1;
@@ -743,7 +743,7 @@ private:
 
 class AuthClientPacket032 : public PacketReader {
 public:
-  AuthClientPacket032() : PacketReader(32) {};
+  AuthClientPacket032() : PacketReader(32800) {};
   AuthClientPacket032(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
   std::vector<std::uint8_t> field_1;
@@ -765,7 +765,7 @@ private:
 
 class AuthClientPacket033 : public PacketReader {
 public:
-  AuthClientPacket033() : PacketReader(33) {};
+  AuthClientPacket033() : PacketReader(32801) {};
   AuthClientPacket033(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
   std::uint32_t field_1;
@@ -787,7 +787,7 @@ private:
 
 class AuthClientPacket034 : public PacketReader {
 public:
-  AuthClientPacket034() : PacketReader(34) {};
+  AuthClientPacket034() : PacketReader(32802) {};
   AuthClientPacket034(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
 
@@ -808,7 +808,7 @@ private:
 
 class AuthClientPacket035 : public PacketReader {
 public:
-  AuthClientPacket035() : PacketReader(35) {};
+  AuthClientPacket035() : PacketReader(32803) {};
   AuthClientPacket035(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
 
@@ -829,7 +829,7 @@ private:
 
 class AuthClientPacket036 : public PacketReader {
 public:
-  AuthClientPacket036() : PacketReader(36) {};
+  AuthClientPacket036() : PacketReader(32804) {};
   AuthClientPacket036(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
   std::u16string field_1;
@@ -852,7 +852,7 @@ private:
 
 class AuthClientPacket037 : public PacketReader {
 public:
-  AuthClientPacket037() : PacketReader(37) {};
+  AuthClientPacket037() : PacketReader(32805) {};
   AuthClientPacket037(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
   std::uint32_t field_1;
@@ -878,7 +878,7 @@ private:
 
 class AuthClientPacket038 : public PacketReader {
 public:
-  AuthClientPacket038() : PacketReader(38) {};
+  AuthClientPacket038() : PacketReader(32806) {};
   AuthClientPacket038(const std::vector<std::uint8_t> &data);
   std::uint8_t field_0;
 
@@ -899,7 +899,7 @@ private:
 
 class AuthClientPacket039 : public PacketReader {
 public:
-  AuthClientPacket039() : PacketReader(39) {};
+  AuthClientPacket039() : PacketReader(32807) {};
   AuthClientPacket039(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
 
@@ -920,7 +920,7 @@ private:
 
 class AuthClientPacket040 : public PacketReader {
 public:
-  AuthClientPacket040() : PacketReader(40) {};
+  AuthClientPacket040() : PacketReader(32808) {};
   AuthClientPacket040(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
   std::u16string field_1;
@@ -948,7 +948,7 @@ private:
 
 class AuthClientRequestInstance : public PacketReader {
 public:
-  AuthClientRequestInstance() : PacketReader(41) {};
+  AuthClientRequestInstance() : PacketReader(32809) {};
   AuthClientRequestInstance(const std::vector<std::uint8_t> &data);
   std::uint32_t transaction_id;
   std::uint32_t map_type;
@@ -974,7 +974,7 @@ private:
 
 class AuthClientPacket042 : public PacketReader {
 public:
-  AuthClientPacket042() : PacketReader(42) {};
+  AuthClientPacket042() : PacketReader(32810) {};
   AuthClientPacket042(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
   std::u16string field_1;
@@ -997,7 +997,7 @@ private:
 
 class AuthClientPacket043 : public PacketReader {
 public:
-  AuthClientPacket043() : PacketReader(43) {};
+  AuthClientPacket043() : PacketReader(32811) {};
   AuthClientPacket043(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
   std::vector<std::uint32_t> field_1;
@@ -1020,7 +1020,7 @@ private:
 
 class AuthClientPacket044 : public PacketReader {
 public:
-  AuthClientPacket044() : PacketReader(44) {};
+  AuthClientPacket044() : PacketReader(32812) {};
   AuthClientPacket044(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
   std::uint32_t field_1;
@@ -1062,7 +1062,7 @@ private:
 
 class AuthClientPacket045 : public PacketReader {
 public:
-  AuthClientPacket045() : PacketReader(45) {};
+  AuthClientPacket045() : PacketReader(32813) {};
   AuthClientPacket045(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
 
@@ -1083,7 +1083,7 @@ private:
 
 class AuthClientPacket046 : public PacketReader {
 public:
-  AuthClientPacket046() : PacketReader(46) {};
+  AuthClientPacket046() : PacketReader(32814) {};
   AuthClientPacket046(const std::vector<std::uint8_t> &data);
 
   std::string get_packet_name() const;
@@ -1103,7 +1103,7 @@ private:
 
 class AuthClientPacket047 : public PacketReader {
 public:
-  AuthClientPacket047() : PacketReader(47) {};
+  AuthClientPacket047() : PacketReader(32815) {};
   AuthClientPacket047(const std::vector<std::uint8_t> &data);
 
   std::string get_packet_name() const;
@@ -1123,7 +1123,7 @@ private:
 
 class AuthClientPacket048 : public PacketReader {
 public:
-  AuthClientPacket048() : PacketReader(48) {};
+  AuthClientPacket048() : PacketReader(32816) {};
   AuthClientPacket048(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
 
@@ -1144,7 +1144,7 @@ private:
 
 class AuthClientPacket049 : public PacketReader {
 public:
-  AuthClientPacket049() : PacketReader(49) {};
+  AuthClientPacket049() : PacketReader(32817) {};
   AuthClientPacket049(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
 
@@ -1165,7 +1165,7 @@ private:
 
 class AuthClientPacket050 : public PacketReader {
 public:
-  AuthClientPacket050() : PacketReader(50) {};
+  AuthClientPacket050() : PacketReader(32818) {};
   AuthClientPacket050(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
   std::u16string field_1;
@@ -1187,7 +1187,7 @@ private:
 
 class AuthClientPacket051 : public PacketReader {
 public:
-  AuthClientPacket051() : PacketReader(51) {};
+  AuthClientPacket051() : PacketReader(32819) {};
   AuthClientPacket051(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
   std::uint32_t field_1;
@@ -1212,7 +1212,7 @@ private:
 
 class AuthClientPacket052 : public PacketReader {
 public:
-  AuthClientPacket052() : PacketReader(52) {};
+  AuthClientPacket052() : PacketReader(32820) {};
   AuthClientPacket052(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
   std::uint32_t field_1;
@@ -1235,7 +1235,7 @@ private:
 
 class AuthClientAskServerResponse : public PacketReader {
 public:
-  AuthClientAskServerResponse() : PacketReader(53) {};
+  AuthClientAskServerResponse() : PacketReader(32821) {};
   AuthClientAskServerResponse(const std::vector<std::uint8_t> &data);
   std::uint32_t transaction_id;
 
@@ -1256,7 +1256,7 @@ private:
 
 class AuthClientPacket054 : public PacketReader {
 public:
-  AuthClientPacket054() : PacketReader(54) {};
+  AuthClientPacket054() : PacketReader(32822) {};
   AuthClientPacket054(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
   std::uint32_t field_1;
@@ -1298,7 +1298,7 @@ private:
 
 class AuthClientPacket055 : public PacketReader {
 public:
-  AuthClientPacket055() : PacketReader(55) {};
+  AuthClientPacket055() : PacketReader(32823) {};
   AuthClientPacket055(const std::vector<std::uint8_t> &data);
   std::uint32_t field_0;
   std::u16string field_1;
@@ -1321,7 +1321,7 @@ private:
 
 class AuthClientPortalAccountLogin : public PacketReader {
 public:
-  AuthClientPortalAccountLogin() : PacketReader(56) {};
+  AuthClientPortalAccountLogin() : PacketReader(32824) {};
   AuthClientPortalAccountLogin(const std::vector<std::uint8_t> &data);
   std::uint32_t transaction_id;
   std::array<std::uint8_t, 16> user_id;
