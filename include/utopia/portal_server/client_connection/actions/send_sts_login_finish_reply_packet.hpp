@@ -26,11 +26,11 @@ inline const auto send_login_finish_reply_packet =
       sts_login_finish_reply_packet.conn_type = 200;
       sts_login_finish_reply_packet.sequence_number = context.sequence_number++;
       sts_login_finish_reply_packet.xml_content_user_id =
-          common::GWUUID::from_string("D8024183-DB2B-ED11-81BB-02DE0BB68F60")
+          common::GWUUID::from_string("D1234567-DB2B-ED11-81BB-00DE1BB23F45")
               .value();
       sts_login_finish_reply_packet.xml_content_user_center = 4;
       sts_login_finish_reply_packet.xml_content_user_name =
-          ":046B93D4-EFF7-C3EE-5FFB-69FA47D48DD9.4106";
+          ":012B34D5-EFF6-C7EE-8FFB-90FA47D48DD9.0001";
       sts_login_finish_reply_packet.xml_content_resume_token =
           common::GWUUID::from_string("34FF9D30-0482-4060-A150-58075C706DF7")
               .value();
