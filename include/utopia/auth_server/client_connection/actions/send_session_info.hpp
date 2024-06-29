@@ -27,6 +27,8 @@ inline const auto send_session_info =
 
       if (!client_connection.encrypt_and_send(session_info.get_packed_data())) {
         spdlog::error("Failed to send session info to the client");
+        event_queue->enqueue(AuthClientConnectionEvent{
+            AuthClientConnectionEvents::UnableToSendPacket{}});
       }
 
       spdlog::trace("Sent session info to the client");
