@@ -31,6 +31,8 @@ inline const auto send_session_info =
             AuthClientConnectionEvents::UnableToSendPacket{}});
       }
 
+      event_queue->enqueue(AuthClientConnectionEvent{
+          AuthClientConnectionEvents::SentSessionInfo{}});
       spdlog::trace("Sent session info to the client");
     };
 
