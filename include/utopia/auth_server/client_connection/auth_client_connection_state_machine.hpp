@@ -1,6 +1,7 @@
 #pragma once
 #include "utopia/auth_server/client_connection/actions/handle_computer_info.hpp"
 #include "utopia/auth_server/client_connection/actions/handle_game_info.hpp"
+#include "utopia/auth_server/client_connection/actions/handle_portal_account_login.hpp"
 #include "utopia/auth_server/client_connection/actions/send_heartbeat_reply.hpp"
 #include "utopia/auth_server/client_connection/actions/send_session_info.hpp"
 #include "utopia/auth_server/client_connection/auth_client_connection_states.hpp"
@@ -27,6 +28,8 @@ struct AuthClientConnectionStateMachine {
       , state<AuthClientConnectionStates::ReceivedGameInfo> + on_entry<_> / send_session_info 
       , state<AuthClientConnectionStates::ReceivedGameInfo> + event<AuthClientConnectionEvents::SentSessionInfo> = state<AuthClientConnectionStates::SessionInfoSent>
       , state<AuthClientConnectionStates::ReceivedGameInfo> + event<AuthClientConnectionEvents::UnableToSendPacket> = X
+
+      , state<AuthClientConnectionStates::SessionInfoSent> + event<AuthClientPortalAccountLogin> / handle_portal_account_login = state<AuthClientConnectionStates::PortalAccountLoginReceived>
 
       , state<_> + event<AuthClientHeartbeat> / send_heartbeat_reply
     );

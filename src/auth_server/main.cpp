@@ -33,7 +33,7 @@ parse_arguments(argparse::ArgumentParser &arg_parser, const int argc,
       .help("Relative path to the servers private key file")
       .default_value("data/gw_key/private_gw_key");
 
-  constexpr std::uint32_t default_game_version = 37408;
+  constexpr std::uint32_t default_game_version = 37432;
   arg_parser.add_argument("--game-version")
       .help("Game version")
       .default_value(default_game_version);

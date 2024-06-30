@@ -9,7 +9,8 @@ namespace utopia::auth::client_connection {
 
 using AuthClientConnectionEvent =
     std::variant<AuthClientConnectionEvents::UnableToSendPacket,
-                 AuthClientConnectionEvents::SentSessionInfo>;
+                 AuthClientConnectionEvents::SentSessionInfo,
+                 AuthClientConnectionEvents::SentErrorMessage>;
 
 using AuthClientPacket = std::variant<
     common::AuthClientHeartbeat, common::AuthClientComputerUserInfo,

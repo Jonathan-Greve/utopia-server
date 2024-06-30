@@ -7,6 +7,7 @@ struct AuthClientConnectionStates {
   struct ReceivedComputerUserInfo {};
   struct ReceivedGameInfo {};
   struct SessionInfoSent {};
+  struct PortalAccountLoginReceived {};
 };
 
 } // namespace utopia::auth::client_connection
