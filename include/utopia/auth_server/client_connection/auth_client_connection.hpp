@@ -37,6 +37,8 @@ private:
       client_connection_sm_;
 
   std::vector<std::uint8_t> auth_client_recv_buf_;
+
+  void process_event_queue();
 };
 
 } // namespace utopia::auth::client_connection

@@ -50,7 +50,7 @@ AuthClientConnection::AuthClientConnection(asio::io_context &io_context,
           std::make_unique<sml::sm<AuthClientConnectionStateMachine,
                                    sml::logger<AuthClientConnectionLogger>>>(
               *this, io_context_, client_connection_sm_context_,
-              client_connection_logger_, &event_queue_)) {
+              client_connection_logger_, event_queue_)) {
   if (accept_connection(port)) {
     spdlog::info("Accepted incoming connection on port {}", port);
   }
@@ -91,22 +91,7 @@ void AuthClientConnection::run(
 
   spdlog::debug("Key exchange successful.");
 
-  using namespace boost::sml;
-  auto event_queue = std::make_unique<
-      moodycamel::ConcurrentQueue<AuthClientConnectionEvent>>();
-
-  AuthClientConnectionContext client_connection_sm_context{};
-
-  AuthClientConnectionLogger client_connection_logger{
-      client_connection_sm_context};
-
-  sm<AuthClientConnectionStateMachine, logger<AuthClientConnectionLogger>>
-      client_connection_sm{*this, io_context_, client_connection_sm_context,
-                           client_connection_logger, event_queue.get()};
-
-  auto is_sm_running = [&client_connection_sm] {
-    return !client_connection_sm.is(sml::X);
-  };
+  auto is_sm_running = [this] { return !client_connection_sm_->is(sml::X); };
 
   spdlog::info("Running client connection.");
   while (is_connected()) {
@@ -117,6 +102,7 @@ void AuthClientConnection::run(
 
     while (auth_client_recv_buf_.size() >= 2 &&
            dispatch_auth_client_packet(this, auth_client_recv_buf_)) {
+      process_event_queue();
     }
 
     log_received_data(auth_client_recv_buf_, num_bytes_read.value());
@@ -142,6 +128,14 @@ void AuthClientConnection::process_event(
         }
       },
       packet);
+}
+
+void AuthClientConnection::process_event_queue() {
+  AuthClientConnectionEvent event;
+  while (event_queue_.try_dequeue(event)) {
+    std::visit([&](auto &&x) { client_connection_sm_->process_event(x); },
+               event);
+  }
 }
 
 } // namespace utopia::auth::client_connection

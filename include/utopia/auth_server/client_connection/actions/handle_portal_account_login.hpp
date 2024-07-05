@@ -6,7 +6,6 @@
 #include "utopia/common/network/packets/generated/auth_client_packets.hpp"
 #include "utopia/common/network/packets/generated/auth_server_packets.hpp"
 
-#include <asio.hpp>
 #include <concurrentqueue.h>
 #include <spdlog/spdlog.h>
 
@@ -15,8 +14,7 @@ namespace client_connection = utopia::auth::client_connection;
 namespace utopia::auth::client_connection {
 
 inline const auto handle_portal_account_login =
-    [](asio::io_context &io,
-       moodycamel::ConcurrentQueue<AuthClientConnectionEvent> *event_queue,
+    [](moodycamel::ConcurrentQueue<AuthClientConnectionEvent> &event_queue,
        AuthClientConnectionContext &client_conn_context,
        AuthClientConnection &client_connection,
        common::AuthClientPortalAccountLogin event) {
@@ -29,11 +27,11 @@ inline const auto handle_portal_account_login =
       if (!client_connection.encrypt_and_send(
               error_message.get_packed_data())) {
         spdlog::error("Failed to send error message to the client");
-        event_queue->enqueue(AuthClientConnectionEvent{
+        event_queue.enqueue(AuthClientConnectionEvent{
             AuthClientConnectionEvents::UnableToSendPacket{}});
       }
 
-      event_queue->enqueue(AuthClientConnectionEvent{
+      event_queue.enqueue(AuthClientConnectionEvent{
           AuthClientConnectionEvents::SentErrorMessage{}});
       spdlog::trace("Sent error message to the client");
     };

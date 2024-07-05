@@ -6,7 +6,6 @@
 #include "utopia/common/network/packets/generated/auth_client_packets.hpp"
 #include "utopia/common/network/packets/generated/auth_server_packets.hpp"
 
-#include <asio.hpp>
 #include <concurrentqueue.h>
 #include <spdlog/spdlog.h>
 
@@ -14,12 +13,10 @@ namespace client_connection = utopia::auth::client_connection;
 
 namespace utopia::auth::client_connection {
 
-inline const auto send_session_info =
-    [](asio::io_context &io,
-       moodycamel::ConcurrentQueue<AuthClientConnectionEvent> *event_queue,
-       AuthClientConnectionContext &client_conn_context,
-       AuthClientConnection &client_connection,
-       common::AuthClientHeartbeat event) {
+inline auto send_session_info =
+    [](AuthClientConnection &client_connection,
+       common::AuthClientHeartbeat event,
+       moodycamel::ConcurrentQueue<AuthClientConnectionEvent> &event_queue) {
       common::AuthServerSessionInfo session_info;
       session_info.salt = 0x164d9765;
       session_info.field_1 = 0xffffffff;
@@ -27,12 +24,15 @@ inline const auto send_session_info =
 
       if (!client_connection.encrypt_and_send(session_info.get_packed_data())) {
         spdlog::error("Failed to send session info to the client");
-        event_queue->enqueue(AuthClientConnectionEvent{
+        event_queue.enqueue(AuthClientConnectionEvent{
             AuthClientConnectionEvents::UnableToSendPacket{}});
       }
 
-      event_queue->enqueue(AuthClientConnectionEvent{
-          AuthClientConnectionEvents::SentSessionInfo{}});
+      if (!event_queue.enqueue(AuthClientConnectionEvent{
+              AuthClientConnectionEvents::SentSessionInfo{}})) {
+        spdlog::error("Failed to queue SentSessionInfo event");
+      }
+
       spdlog::trace("Sent session info to the client");
     };
 
